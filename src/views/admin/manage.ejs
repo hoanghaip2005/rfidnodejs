@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Hệ thống - RFID Attendance System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Include shared styles -->
+    <%- include('../partials/styles') %>
+
+        <style>
+            /* Page-specific styles for admin manage */
+            .admin-section {
+                background: white;
+                margin-bottom: 30px;
+                padding: 25px;
+                border-radius: 15px;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+                border: 1px solid #e3e6f0;
+            }
+
+            .section-title {
+                color: #667eea;
+                font-size: 20px;
+                font-weight: bold;
+                margin-bottom: 20px;
+                padding-bottom: 10px;
+                border-bottom: 2px solid #f0f0f0;
+            }
+
+            .section-title i {
+                color: #764ba2;
+            }
+
+            .btn-custom {
+                background: linear-gradient(135deg, #667eea, #764ba2);
+                color: white;
+                border: none;
+                padding: 10px 20px;
+                border-radius: 25px;
+                transition: all 0.3s ease;
+                font-weight: 500;
+            }
+
+            .btn-custom:hover {
+                background: linear-gradient(135deg, #764ba2, #667eea);
+                color: white;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+            }
+
+            .form-control-custom {
+                border-radius: 10px;
+                border: 2px solid #e0e0e0;
+                padding: 12px 20px;
+                transition: all 0.3s ease;
+            }
+
+            .form-control-custom:focus {
+                border-color: #667eea;
+                box-shadow: 0 0 10px rgba(102, 126, 234, 0.2);
+            }
+
+            .locations-list {
+                max-height: 300px;
+                overflow-y: auto;
+                border: 1px solid #e0e0e0;
+                border-radius: 10px;
+                padding: 15px;
+                background: #f8f9fa;
+            }
+
+            .location-item {
+                padding: 12px;
+                margin-bottom: 10px;
+                background: white;
+                border-radius: 8px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+                transition: all 0.2s ease;
+            }
+
+            .location-item:hover {
+                transform: translateX(5px);
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+            }
+
+            .location-actions {
+                display: flex;
+                gap: 5px;
+            }
+
+            .btn-sm-custom {
+                padding: 5px 10px;
+                font-size: 12px;
+                border-radius: 15px;
+            }
+
+            .employee-search-results {
+                max-height: 250px;
+                overflow-y: auto;
+                border: 1px solid #e0e0e0;
+                border-radius: 8px;
+                background: white;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                margin-top: 5px;
+            }
+
+            .employee-search-item {
+                padding: 12px 15px;
+                border-bottom: 1px solid #f0f0f0;
+                cursor: pointer;
+                transition: background-color 0.2s;
+            }
+
+            .employee-search-item:hover {
+                background-color: #f8f9fa;
+            }
+
+            .employee-search-item:last-child {
+                border-bottom: none;
+            }
+
+            .employee-search-item .employee-id {
+                font-weight: bold;
+                color: #667eea;
+            }
+
+            .employee-search-item .employee-name {
+                color: #333;
+                margin-left: 10px;
+            }
+
+            .employee-search-item .employee-dept {
+                color: #666;
+                font-size: 0.9em;
+                margin-top: 2px;
+            }
+
+            .input-group-custom {
+                margin-bottom: 15px;
+            }
+
+            .main-content {
+                min-height: 100vh;
+                background: #f8f9fa;
+            }
+
+            .page-header {
+                background: white;
+                padding: 20px;
+                border-radius: 10px;
+                margin-bottom: 30px;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+            }
+
+            .alert-custom {
+                border-radius: 10px;
+                border-left: 4px solid;
+            }
+
+            .alert-info-custom {
+                border-left-color: #667eea;
+                background: rgba(102, 126, 234, 0.1);
+            }
+
+            .alert-warning-custom {
+                border-left-color: #f0ad4e;
+                background: rgba(240, 173, 78, 0.1);
+            }
+        </style>
+</head>
+
+<body>
+    <!-- Mobile Menu Toggle -->
+    <button class="btn btn-light position-fixed d-lg-none" id="mobileMenuToggle"
+        style="top: 1rem; left: 1rem; z-index: 1100;">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Include shared sidebar -->
+    <%- include('../partials/sidebar') %>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="container-fluid p-4">
+                <!-- Page Header -->
+                <div class="page-header">
+                    <h1 class="h3 mb-0">
+                        <i class="fas fa-cogs me-2 text-primary"></i>Quản Lý Hệ Thống
+                    </h1>
+                    <p class="text-muted mb-0">Quản lý locations, tài khoản, mật khẩu và dữ liệu nhân viên</p>
+                </div>
+
+                <!-- Location Management Section -->
+                <div class="admin-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-map-marker-alt me-2"></i>Quản Lý Locations
+                    </h3>
+
+                    <div class="row">
+                        <div class="col-lg-6 mb-3">
+                            <div class="input-group input-group-custom">
+                                <input type="text" id="locationInput" class="form-control form-control-custom"
+                                    placeholder="Nhập tên location mới">
+                                <button class="btn btn-custom" type="button" id="addLocationBtn">
+                                    <i class="fas fa-plus me-1"></i>Thêm Location
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="locations-list" id="locationsList">
+                                <div class="text-center text-muted">
+                                    <i class="fas fa-spinner fa-spin"></i> Đang tải locations...
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account Management Section -->
+                <div class="admin-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-users me-2"></i>Quản Lý Tài Khoản
+                    </h3>
+
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Mã Nhân Viên (ID) *</label>
+                                <input type="text" id="employeeIdInput" class="form-control form-control-custom"
+                                    placeholder="Nhập mã nhân viên">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Tên Nhân Viên *</label>
+                                <input type="text" id="employeeNameInput" class="form-control form-control-custom"
+                                    placeholder="Nhập tên nhân viên">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Phòng Ban</label>
+                                <input type="text" id="departmentInput" class="form-control form-control-custom"
+                                    placeholder="Nhập phòng ban">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Tên đăng nhập *</label>
+                                <input type="text" id="usernameInput" class="form-control form-control-custom"
+                                    placeholder="Nhập tên đăng nhập">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Mật khẩu *</label>
+                                <input type="password" id="passwordInput" class="form-control form-control-custom"
+                                    placeholder="Nhập mật khẩu">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Vai trò *</label>
+                                <select id="roleSelect" class="form-control form-control-custom">
+                                    <option value="staff">Staff (Nhân viên)</option>
+                                    <option value="event_manager">Event Manager</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-custom w-100" id="createAccountBtn">
+                                <i class="fas fa-user-plus me-1"></i>Tạo Tài Khoản
+                            </button>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="alert alert-info-custom alert-custom">
+                                <h6><i class="fas fa-info-circle me-1"></i>Hướng dẫn:</h6>
+                                <p class="mb-2">Tạo tài khoản cho nhân viên với thông tin đầy đủ:</p>
+                                <ul class="mb-0 small">
+                                    <li><strong>ID</strong>: Mã nhân viên duy nhất</li>
+                                    <li><strong>Tên</strong>: Họ và tên đầy đủ</li>
+                                    <li><strong>Department</strong>: Phòng ban (tùy chọn)</li>
+                                    <li><strong>Username</strong>: Tên đăng nhập hệ thống</li>
+                                    <li><strong>Password</strong>: Mật khẩu (tối thiểu 6 ký tự)</li>
+                                    <li><strong>Vai trò</strong>:
+                                        <ul>
+                                            <li><em>Staff</em>: Chỉ check-in/out cho bản thân</li>
+                                            <li><em>Event Manager</em>: Quản lý sự kiện</li>
+                                            <li><em>Admin</em>: Toàn quyền quản trị</li>
+                                        </ul>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reset Password Section -->
+                <div class="admin-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-key me-2"></i>Cấp Lại Mật Khẩu
+                    </h3>
+
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="mb-3">
+                                <label for="searchEmployeeInput" class="form-label fw-semibold">Tìm kiếm nhân
+                                    viên:</label>
+                                <input type="text" id="searchEmployeeInput" class="form-control form-control-custom"
+                                    placeholder="Nhập ID, tên hoặc username để tìm kiếm..." autocomplete="off">
+                                <div id="employeeSearchResults" class="employee-search-results" style="display: none;">
+                                    <!-- Search results will be displayed here -->
+                                </div>
+                            </div>
+
+                            <div id="resetPasswordForm" style="display: none;">
+                                <div class="mb-3">
+                                    <label for="selectedEmployeeInfo" class="form-label fw-semibold">Nhân viên được
+                                        chọn:</label>
+                                    <div id="selectedEmployeeInfo" class="alert alert-info py-2">
+                                        <!-- Selected employee info will be displayed here -->
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="newPasswordInput" class="form-label fw-semibold">Mật khẩu mới:</label>
+                                    <input type="password" id="newPasswordInput"
+                                        class="form-control form-control-custom"
+                                        placeholder="Nhập mật khẩu mới (tối thiểu 6 ký tự)">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="confirmPasswordInput" class="form-label fw-semibold">Xác nhận mật
+                                        khẩu:</label>
+                                    <input type="password" id="confirmPasswordInput"
+                                        class="form-control form-control-custom" placeholder="Xác nhận mật khẩu mới">
+                                </div>
+
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-custom flex-fill" id="resetPasswordBtn">
+                                        <i class="fas fa-key me-1"></i>Cấp Lại Mật Khẩu
+                                    </button>
+                                    <button class="btn btn-secondary" id="cancelResetBtn">
+                                        <i class="fas fa-times me-1"></i>Hủy
+                                    </button>
+                                </div>
+
+                                <input type="hidden" id="selectedEmployeeId">
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="alert alert-warning-custom alert-custom">
+                                <h6><i class="fas fa-exclamation-triangle me-1"></i>Lưu ý:</h6>
+                                <p class="mb-2">Chức năng này dành cho việc cấp lại mật khẩu khi nhân viên quên mật
+                                    khẩu.</p>
+                                <ul class="mb-0 small">
+                                    <li>Tìm kiếm nhân viên bằng ID, tên hoặc username</li>
+                                    <li>Mật khẩu mới phải có ít nhất 6 ký tự</li>
+                                    <li>Thông báo cho nhân viên mật khẩu mới sau khi reset</li>
+                                    <li>Khuyến nghị nhân viên đổi mật khẩu sau lần đăng nhập đầu tiên</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Employee Data Upload Section -->
+                <div class="admin-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-upload me-2"></i>Nạp Dữ Liệu Nhân Viên
+                    </h3>
+
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="mb-3">
+                                <label for="employeeFile" class="form-label fw-semibold">Chọn file Excel:</label>
+                                <input type="file" id="employeeFile" class="form-control form-control-custom"
+                                    accept=".xlsx,.xls">
+                            </div>
+                            <button class="btn btn-custom w-100" id="uploadEmployeesBtn">
+                                <i class="fas fa-file-excel me-1"></i>Nạp Dữ Liệu Excel
+                            </button>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="alert alert-warning-custom alert-custom">
+                                <h6><i class="fas fa-exclamation-triangle me-1"></i>Format Excel:</h6>
+                                <p class="mb-2">File Excel phải có dòng đầu tiên là header với các cột:</p>
+                                <ul class="mb-2 small">
+                                    <li><strong>ID</strong>: Mã nhân viên (bắt buộc, duy nhất)</li>
+                                    <li><strong>Name</strong>: Tên nhân viên (bắt buộc)</li>
+                                    <li><strong>Department</strong>: Phòng ban (tùy chọn)</li>
+                                    <li><strong>Username</strong>: Tên đăng nhập (tùy chọn, mặc định = ID)</li>
+                                    <li><strong>Password</strong>: Mật khẩu (tùy chọn, mặc định = 123456)</li>
+                                    <li><strong>Role</strong>: Vai trò (tùy chọn, mặc định = <em>staff</em>)</li>
+                                </ul>
+                                <p class="mb-1"><small><strong>Lưu ý:</strong></small></p>
+                                <ul class="mb-0 small">
+                                    <li>Nếu ID hoặc Username đã tồn tại → bỏ qua dòng đó</li>
+                                    <li>Role hợp lệ: staff, event_manager, admin</li>
+                                    <li>Nếu không có Role hoặc Role không hợp lệ → mặc định là <strong>staff</strong>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div> <!-- Download Attendance Data Section -->
+                <div class="admin-section">
+                    <h3 class="section-title">
+                        <i class="fas fa-download me-2"></i>Tải Dữ Liệu Chấm Công
+                    </h3>
+
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <div class="mb-3">
+                                <label for="dateRangeSelect" class="form-label fw-semibold">Chọn khoảng thời
+                                    gian:</label>
+                                <select id="dateRangeSelect" class="form-control form-control-custom">
+                                    <option value="today">Hôm nay</option>
+                                    <option value="yesterday">Hôm qua</option>
+                                    <option value="thisweek">Tuần này</option>
+                                    <option value="lastweek">Tuần trước</option>
+                                    <option value="thismonth">Tháng này</option>
+                                    <option value="lastmonth">Tháng trước</option>
+                                    <option value="all">Tất cả dữ liệu</option>
+                                    <option value="custom">Tùy chọn ngày</option>
+                                </select>
+                            </div>
+                            <div id="customDateRange" style="display: none;">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <label class="form-label fw-semibold">Từ ngày:</label>
+                                        <input type="date" id="startDate" class="form-control form-control-custom mb-2">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label fw-semibold">Đến ngày:</label>
+                                        <input type="date" id="endDate" class="form-control form-control-custom mb-2">
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn btn-custom w-100" id="downloadAttendanceBtn">
+                                <i class="fas fa-file-download me-1"></i>Tải Dữ Liệu Chấm Công
+                            </button>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="alert alert-info-custom alert-custom">
+                                <h6><i class="fas fa-info-circle me-1"></i>Thông tin:</h6>
+                                <p class="mb-2">Tải file Excel chứa dữ liệu chấm công với các thông tin:</p>
+                                <ul class="mb-0 small">
+                                    <li>Mã nhân viên (ID)</li>
+                                    <li>Tên nhân viên</li>
+                                    <li>Thời gian vào</li>
+                                    <li>Thời gian ra</li>
+                                    <li>Số giờ làm việc</li>
+                                    <li>Ngày chấm công</li>
+                                    <li>Vị trí (Location)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Messages Area -->
+        <div id="messageArea" class="position-fixed top-0 start-50 translate-middle-x"
+            style="z-index: 1050; margin-top: 20px;">
+        </div>
+
+        <!-- Edit Location Modal -->
+        <div class="modal fade" id="editLocationModal" tabindex="-1" aria-labelledby="editLocationModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editLocationModalLabel">
+                            <i class="fas fa-edit me-2"></i>Chỉnh Sửa Location
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="editLocationName" class="form-label">Tên Location:</label>
+                            <input type="text" class="form-control form-control-custom" id="editLocationName"
+                                placeholder="Nhập tên location mới">
+                            <input type="hidden" id="editLocationId">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button type="button" class="btn btn-custom" id="saveLocationBtn">
+                            <i class="fas fa-save me-1"></i>Lưu Thay Đổi
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            // Show message function
+            function showMessage(message, type = 'success') {
+                const messageArea = document.getElementById('messageArea');
+                const alertClass = type === 'success' ? 'alert-success' : type === 'error' ? 'alert-danger' : 'alert-warning';
+
+                const alertDiv = document.createElement('div');
+                alertDiv.className = `alert ${alertClass} alert-dismissible fade show`;
+                alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+
+                messageArea.appendChild(alertDiv);
+
+                setTimeout(() => {
+                    alertDiv.remove();
+                }, 5000);
+            }
+
+            // Location Management
+            async function loadLocations() {
+                try {
+                    const response = await fetch('/admin/api/locations');
+                    const data = await response.json();
+
+                    const locationsList = document.getElementById('locationsList');
+
+                    if (!data.success || !data.data || data.data.length === 0) {
+                        locationsList.innerHTML = '<div class="text-center text-muted">Chưa có location nào</div>';
+                        return;
+                    }
+
+                    locationsList.innerHTML = data.data.map(location => `
+                    <div class="location-item">
+                        <span><i class="fas fa-map-marker-alt me-2 text-primary"></i>${location.name || location}</span>
+                        <div class="location-actions">
+                            <button class="btn btn-sm btn-primary btn-sm-custom" onclick="editLocation('${location.id || location}', '${location.name || location}')">
+                                <i class="fas fa-edit"></i> Sửa
+                            </button>
+                            <button class="btn btn-sm btn-danger btn-sm-custom" onclick="deleteLocation('${location.id || location}')">
+                                <i class="fas fa-trash"></i> Xóa
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+                } catch (error) {
+                    console.error('Error loading locations:', error);
+                    showMessage('Không thể tải danh sách locations', 'error');
+                }
+            }
+
+            // Add Location
+            document.getElementById('addLocationBtn').addEventListener('click', async function () {
+                const locationInput = document.getElementById('locationInput');
+                const locationName = locationInput.value.trim();
+
+                if (!locationName) {
+                    showMessage('Vui lòng nhập tên location', 'error');
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/admin/api/locations', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name: locationName })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        showMessage('Thêm location thành công!', 'success');
+                        locationInput.value = '';
+                        loadLocations();
+                    } else {
+                        showMessage(data.message || 'Không thể thêm location', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error adding location:', error);
+                    showMessage('Đã xảy ra lỗi khi thêm location', 'error');
+                }
+            });
+
+            // Edit Location
+            function editLocation(id, name) {
+                document.getElementById('editLocationId').value = id;
+                document.getElementById('editLocationName').value = name;
+                const modal = new bootstrap.Modal(document.getElementById('editLocationModal'));
+                modal.show();
+            }
+
+            // Save Location Edit
+            document.getElementById('saveLocationBtn').addEventListener('click', async function () {
+                const id = document.getElementById('editLocationId').value;
+                const name = document.getElementById('editLocationName').value.trim();
+
+                if (!name) {
+                    showMessage('Vui lòng nhập tên location', 'error');
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/admin/api/locations/${id}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        showMessage('Cập nhật location thành công!', 'success');
+                        bootstrap.Modal.getInstance(document.getElementById('editLocationModal')).hide();
+                        loadLocations();
+                    } else {
+                        showMessage(data.message || 'Không thể cập nhật location', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error updating location:', error);
+                    showMessage('Đã xảy ra lỗi khi cập nhật location', 'error');
+                }
+            });
+
+            // Delete Location
+            async function deleteLocation(id) {
+                if (!confirm('Bạn có chắc chắn muốn xóa location này?')) return;
+
+                try {
+                    const response = await fetch(`/admin/api/locations/${id}`, {
+                        method: 'DELETE'
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        showMessage('Xóa location thành công!', 'success');
+                        loadLocations();
+                    } else {
+                        showMessage(data.message || 'Không thể xóa location', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error deleting location:', error);
+                    showMessage('Đã xảy ra lỗi khi xóa location', 'error');
+                }
+            }
+
+            // Create Account
+            document.getElementById('createAccountBtn').addEventListener('click', async function () {
+                const employeeId = document.getElementById('employeeIdInput').value.trim();
+                const employeeName = document.getElementById('employeeNameInput').value.trim();
+                const department = document.getElementById('departmentInput').value.trim();
+                const username = document.getElementById('usernameInput').value.trim();
+                const password = document.getElementById('passwordInput').value;
+                const role = document.getElementById('roleSelect').value;
+
+                if (!employeeId || !employeeName || !username || !password) {
+                    showMessage('Vui lòng điền đầy đủ thông tin bắt buộc (ID, Tên, Username, Password)', 'error');
+                    return;
+                }
+
+                if (password.length < 6) {
+                    showMessage('Mật khẩu phải có ít nhất 6 ký tự', 'error');
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/admin/api/users', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            employee_id: employeeId,
+                            name: employeeName,
+                            department: department || null,
+                            username,
+                            password,
+                            role
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        showMessage('Tạo tài khoản thành công!', 'success');
+                        // Clear form
+                        document.getElementById('employeeIdInput').value = '';
+                        document.getElementById('employeeNameInput').value = '';
+                        document.getElementById('departmentInput').value = '';
+                        document.getElementById('usernameInput').value = '';
+                        document.getElementById('passwordInput').value = '';
+                    } else {
+                        showMessage(data.message || 'Không thể tạo tài khoản', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error creating account:', error);
+                    showMessage('Đã xảy ra lỗi khi tạo tài khoản', 'error');
+                }
+            });
+
+            // Search Employee
+            let searchTimeout;
+            document.getElementById('searchEmployeeInput').addEventListener('input', function () {
+                clearTimeout(searchTimeout);
+                const query = this.value.trim();
+
+                if (query.length < 2) {
+                    document.getElementById('employeeSearchResults').style.display = 'none';
+                    return;
+                }
+
+                searchTimeout = setTimeout(async () => {
+                    try {
+                        const response = await fetch(`/admin/api/users/search?q=${encodeURIComponent(query)}`);
+                        const data = await response.json();
+
+                        const resultsDiv = document.getElementById('employeeSearchResults');
+
+                        if (!data.success || !data.data || data.data.length === 0) {
+                            resultsDiv.innerHTML = '<div class="employee-search-item">Không tìm thấy nhân viên</div>';
+                            resultsDiv.style.display = 'block';
+                            return;
+                        }
+
+                        resultsDiv.innerHTML = data.data.map(emp => `
+                        <div class="employee-search-item" onclick="selectEmployee('${emp.id}', '${emp.employee_id}', '${emp.name}', '${emp.username || ''}')">
+                            <div>
+                                <span class="employee-id">${emp.employee_id}</span>
+                                <span class="employee-name">${emp.name}</span>
+                            </div>
+                            <div class="employee-dept">${emp.department || 'Không có phòng ban'} - ${emp.username || 'Không có username'}</div>
+                        </div>
+                    `).join('');
+                        resultsDiv.style.display = 'block';
+                    } catch (error) {
+                        console.error('Error searching employees:', error);
+                    }
+                }, 300);
+            });
+
+            // Select Employee for Password Reset
+            function selectEmployee(id, employeeId, name, username) {
+                document.getElementById('selectedEmployeeId').value = id;
+                document.getElementById('selectedEmployeeInfo').innerHTML = `
+                <strong>${employeeId}</strong> - ${name}<br>
+                <small>Username: ${username || 'Không có'}</small>
+            `;
+                document.getElementById('employeeSearchResults').style.display = 'none';
+                document.getElementById('resetPasswordForm').style.display = 'block';
+            }
+
+            // Cancel Reset Password
+            document.getElementById('cancelResetBtn').addEventListener('click', function () {
+                document.getElementById('resetPasswordForm').style.display = 'none';
+                document.getElementById('searchEmployeeInput').value = '';
+                document.getElementById('newPasswordInput').value = '';
+                document.getElementById('confirmPasswordInput').value = '';
+            });
+
+            // Reset Password
+            document.getElementById('resetPasswordBtn').addEventListener('click', async function () {
+                const userId = document.getElementById('selectedEmployeeId').value;
+                const newPassword = document.getElementById('newPasswordInput').value;
+                const confirmPassword = document.getElementById('confirmPasswordInput').value;
+
+                if (!newPassword || !confirmPassword) {
+                    showMessage('Vui lòng nhập mật khẩu mới và xác nhận', 'error');
+                    return;
+                }
+
+                if (newPassword.length < 6) {
+                    showMessage('Mật khẩu phải có ít nhất 6 ký tự', 'error');
+                    return;
+                }
+
+                if (newPassword !== confirmPassword) {
+                    showMessage('Mật khẩu xác nhận không khớp', 'error');
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`/admin/api/users/${userId}/reset-password`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ newPassword })
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        showMessage('Cấp lại mật khẩu thành công!', 'success');
+                        document.getElementById('cancelResetBtn').click();
+                    } else {
+                        showMessage(data.message || 'Không thể cấp lại mật khẩu', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error resetting password:', error);
+                    showMessage('Đã xảy ra lỗi khi cấp lại mật khẩu', 'error');
+                }
+            });
+
+            // Upload Employees Excel
+            document.getElementById('uploadEmployeesBtn').addEventListener('click', async function () {
+                const fileInput = document.getElementById('employeeFile');
+                const file = fileInput.files[0];
+
+                if (!file) {
+                    showMessage('Vui lòng chọn file Excel', 'error');
+                    return;
+                }
+
+                // Show loading state
+                const btn = this;
+                const originalText = btn.innerHTML;
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Đang xử lý...';
+
+                const formData = new FormData();
+                formData.append('file', file);
+
+                try {
+                    const response = await fetch('/admin/api/users/upload', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        let message = `✅ Upload thành công! ${data.data.added} nhân viên đã được thêm`;
+                        if (data.data.skipped > 0) {
+                            message += `, ${data.data.skipped} dòng bị bỏ qua`;
+                        }
+
+                        // Show errors in console
+                        if (data.data.errors && data.data.errors.length > 0) {
+                            console.log('Upload errors:', data.data.errors);
+                            message += '. Xem console để biết chi tiết lỗi.';
+                        }
+
+                        showMessage(message, 'success');
+                        fileInput.value = '';
+                    } else {
+                        showMessage(data.message || 'Không thể upload file', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error uploading file:', error);
+                    showMessage('Đã xảy ra lỗi khi upload file', 'error');
+                } finally {
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }
+            });            // Date Range Selection
+            document.getElementById('dateRangeSelect').addEventListener('change', function () {
+                const customDateRange = document.getElementById('customDateRange');
+                customDateRange.style.display = this.value === 'custom' ? 'block' : 'none';
+            });
+
+            // Download Attendance Data
+            document.getElementById('downloadAttendanceBtn').addEventListener('click', async function () {
+                const dateRange = document.getElementById('dateRangeSelect').value;
+                let startDate = '';
+                let endDate = '';
+
+                if (dateRange === 'custom') {
+                    startDate = document.getElementById('startDate').value;
+                    endDate = document.getElementById('endDate').value;
+
+                    if (!startDate || !endDate) {
+                        showMessage('Vui lòng chọn ngày bắt đầu và kết thúc', 'error');
+                        return;
+                    }
+                }
+
+                try {
+                    const params = new URLSearchParams({ dateRange, startDate, endDate });
+                    window.location.href = `/admin/api/attendance/download?${params.toString()}`;
+                    showMessage('Đang tải dữ liệu...', 'success');
+                } catch (error) {
+                    console.error('Error downloading attendance:', error);
+                    showMessage('Đã xảy ra lỗi khi tải dữ liệu', 'error');
+                }
+            });
+
+            // Initialize
+            document.addEventListener('DOMContentLoaded', function () {
+                loadLocations();
+            });
+        </script>
+
+        <!-- Include shared scripts -->
+        <%- include('../partials/scripts') %>
+</body>
+
+</html>

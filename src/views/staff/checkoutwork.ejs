@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= title %>
+    </title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Include shared styles -->
+    <%- include('../partials/styles') %>
+
+        <style>
+            /* Page-specific styles for checkoutwork */
+            .header {
+                background: linear-gradient(135deg, #dc3545, #fd7e14);
+                color: white;
+                padding: 20px 0;
+                text-align: center;
+                font-size: 24px;
+                font-weight: bold;
+                margin-bottom: 30px;
+            }
+
+            .check-container {
+                background: white;
+                border-radius: 15px;
+                box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+                padding: 40px;
+                margin: 20px auto;
+                max-width: 500px;
+                text-align: center;
+            }
+
+            .check-title {
+                color: #dc3545;
+                font-size: 28px;
+                font-weight: bold;
+                margin-bottom: 30px;
+            }
+
+            .rfid-icon {
+                font-size: 80px;
+                color: #dc3545;
+                margin-bottom: 20px;
+                animation: pulse 2s infinite;
+            }
+
+            .instruction {
+                font-size: 16px;
+                color: #666;
+                margin-bottom: 30px;
+            }
+
+            .rfid-input-area {
+                background: #f8f9fa;
+                border: 3px dashed #dc3545;
+                border-radius: 15px;
+                padding: 30px;
+                margin-bottom: 20px;
+                transition: all 0.3s ease;
+            }
+
+            .rfid-input-area:hover {
+                background: #fdf2f2;
+                border-color: #fd7e14;
+            }
+
+            .manual-input {
+                margin-top: 20px;
+            }
+
+            .btn-checkout {
+                background: linear-gradient(135deg, #dc3545, #fd7e14);
+                border: none;
+                border-radius: 25px;
+                padding: 12px 30px;
+                font-weight: bold;
+                color: white;
+                transition: all 0.3s ease;
+            }
+
+            .btn-checkout:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
+                color: white;
+            }
+
+            .status-card {
+                background: #fdf2f2;
+                border: 1px solid #dc3545;
+                border-radius: 10px;
+                padding: 20px;
+                margin-top: 20px;
+            }
+
+            .recent-checkout {
+                background: #f8f9fa;
+                border-radius: 8px;
+                padding: 15px;
+                margin-top: 15px;
+                border-left: 4px solid #dc3545;
+            }
+
+            /* Step-based layout */
+            .step {
+                min-height: 300px;
+                padding: 20px;
+            }
+
+            /* Method buttons */
+            .method-buttons {
+                display: flex;
+                justify-content: center;
+                gap: 15px;
+                flex-wrap: wrap;
+            }
+
+            .method-btn {
+                width: 140px;
+                height: 120px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                border-radius: 15px;
+                transition: all 0.3s ease;
+            }
+
+            .method-btn:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            }
+
+            /* Scanning icons */
+            .scan-icon {
+                font-size: 80px;
+                margin-bottom: 20px;
+            }
+
+            /* QR Scanner */
+            .qr-scanner {
+                min-height: 300px;
+                padding: 20px;
+            }
+
+            #qrVideo {
+                max-width: 100%;
+                border-radius: 10px;
+                border: 2px solid #dc3545;
+            }
+
+            .scanner-status {
+                margin-top: 10px;
+                font-style: italic;
+                color: #6c757d;
+            }
+
+            /* RFID Scanner */
+            .rfid-scanner {
+                min-height: 300px;
+                padding: 20px;
+            }
+
+            /* Manual Input */
+            .manual-input {
+                min-height: 200px;
+                padding: 20px;
+            }
+
+            .employee-search-item {
+                padding: 10px;
+                cursor: pointer;
+                border-bottom: 1px solid #eee;
+                transition: background-color 0.2s;
+            }
+
+            .employee-search-item:hover,
+            .employee-search-item.selected {
+                background-color: #e3f2fd;
+            }
+
+            .employee-search-item:last-child {
+                border-bottom: none;
+            }
+
+            .employee-id {
+                font-weight: bold;
+                color: #007bff;
+            }
+
+            .employee-name {
+                color: #6c757d;
+                font-size: 0.9em;
+            }
+
+            @keyframes pulse {
+                0% {
+                    transform: scale(1);
+                }
+
+                50% {
+                    transform: scale(1.1);
+                }
+
+                100% {
+                    transform: scale(1);
+                }
+            }
+
+            .processing {
+                display: none;
+            }
+
+            .navbar-custom {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            }
+        </style>
+</head>
+
+<body>
+    <!-- Mobile Menu Toggle -->
+    <button class="btn btn-light position-fixed" id="mobileMenuToggle"
+        style="top: 1rem; left: 1rem; z-index: 1100; display: none;">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Include shared sidebar -->
+    <%- include('../partials/sidebar') %>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <i class="fas fa-sign-out-alt me-3"></i>
+                CHECK OUT WORK - CHẤM CÔNG RA VỀ
+            </div>
+
+            <!-- Content -->
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-md-8">
+                        <div class="check-container">
+                            <div class="check-title">
+                                <i class="fas fa-clock me-2"></i>
+                                Chấm Công Ra Về
+                            </div>
+
+                            <!-- Step 1: Select Location -->
+                            <div id="step1" class="step">
+                                <h5 class="text-center text-danger mb-4">
+                                    <i class="fas fa-map-marker-alt me-2"></i>Chọn Vị Trí Làm Việc
+                                </h5>
+                                <div class="mb-3">
+                                    <select class="form-select" id="locationSelect">
+                                        <option value="">Chọn vị trí...</option>
+                                    </select>
+                                </div>
+                                <div class="text-center">
+                                    <button class="btn btn-danger" id="selectLocationBtn" disabled>
+                                        Tiếp Theo <i class="fas fa-arrow-right ms-2"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Step 2: Choose Input Method -->
+                            <div id="step2" class="step" style="display: none;">
+                                <h5 class="text-center text-danger mb-4">
+                                    <i class="fas fa-hand-pointer me-2"></i>Chọn Phương Thức Nhập
+                                </h5>
+                                <div class="method-buttons text-center">
+                                    <button class="btn btn-info me-2 mb-2 method-btn" data-method="qr">
+                                        <i class="fas fa-qrcode fa-2x"></i>
+                                        <div class="mt-2">Quét QR</div>
+                                    </button>
+                                    <button class="btn btn-warning me-2 mb-2 method-btn" data-method="rfid">
+                                        <i class="fas fa-id-card fa-2x"></i>
+                                        <div class="mt-2">Chạm RFID</div>
+                                    </button>
+                                    <button class="btn btn-secondary mb-2 method-btn" data-method="manual">
+                                        <i class="fas fa-keyboard fa-2x"></i>
+                                        <div class="mt-2">Nhập Thủ Công</div>
+                                    </button>
+                                </div>
+                                <div class="text-center mt-3">
+                                    <button class="btn btn-outline-secondary" data-action="back" data-step="1">
+                                        <i class="fas fa-arrow-left me-2"></i>Quay Lại
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Step 3: QR Scanner -->
+                            <div id="step3-qr" class="step" style="display: none;">
+                                <h5 class="text-center text-danger mb-4">
+                                    <i class="fas fa-qrcode me-2"></i>Quét Mã QR
+                                </h5>
+                                <div class="qr-scanner text-center">
+                                    <i class="fas fa-qrcode scan-icon text-danger"></i>
+                                    <p class="mt-3">Đưa mã QR vào khung camera để quét</p>
+                                    <video id="qrVideo" width="300" height="200"
+                                        style="display: none; border-radius: 10px; border: 2px solid #dc3545;"></video>
+                                    <canvas id="qrCanvas" style="display: none;"></canvas>
+                                    <div class="scanner-status">Đang khởi động camera...</div>
+                                </div>
+                                <div class="text-center mt-3">
+                                    <button class="btn btn-outline-secondary" data-action="back" data-step="2">
+                                        <i class="fas fa-arrow-left me-2"></i>Quay Lại
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Step 3: RFID Scanner -->
+                            <div id="step3-rfid" class="step" style="display: none;">
+                                <h5 class="text-center text-danger mb-4">
+                                    <i class="fas fa-id-card me-2"></i>Chạm Thẻ RFID
+                                </h5>
+                                <div class="rfid-scanner text-center">
+                                    <i class="fas fa-id-card scan-icon text-warning"></i>
+                                    <p class="mt-3">Chạm thẻ RFID của bạn vào đầu đọc</p>
+                                    <input type="text" id="rfidInput" style="position: absolute; left: -9999px;"
+                                        autocomplete="off">
+                                    <div id="rfid-status" class="mt-3">
+                                        <span class="badge bg-warning">Đang chờ thẻ RFID...</span>
+                                    </div>
+                                </div>
+                                <div class="text-center mt-3">
+                                    <button class="btn btn-outline-secondary" data-action="back" data-step="2">
+                                        <i class="fas fa-arrow-left me-2"></i>Quay Lại
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Step 3: Manual Input -->
+                            <div id="step3-manual" class="step" style="display: none;">
+                                <h5 class="text-center text-danger mb-4">
+                                    <i class="fas fa-keyboard me-2"></i>Nhập Thủ Công
+                                </h5>
+                                <div class="manual-input">
+                                    <div class="mb-3 position-relative">
+                                        <label for="employeeId" class="form-label">Mã Nhân Viên:</label>
+                                        <input type="text" class="form-control" id="employeeId"
+                                            placeholder="Nhập mã nhân viên" autocomplete="off">
+                                        <div id="employeeSearchResults"
+                                            class="position-absolute w-100 bg-white border rounded shadow-sm"
+                                            style="top: 100%; z-index: 1000; max-height: 200px; overflow-y: auto; display: none;">
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="employeeName" class="form-label">Tên Nhân Viên:</label>
+                                        <input type="text" class="form-control" id="employeeName"
+                                            placeholder="Tên sẽ được điền tự động" readonly>
+                                    </div>
+                                    <div class="text-center">
+                                        <button class="btn btn-danger" id="manualSubmitBtn">
+                                            <i class="fas fa-sign-out-alt me-2"></i>Chấm Công
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="text-center mt-3">
+                                    <button class="btn btn-outline-secondary" data-action="back" data-step="2">
+                                        <i class="fas fa-arrow-left me-2"></i>Quay Lại
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Result Message -->
+                            <div id="resultMessage" class="mt-3"></div>
+                        </div>
+                    </div>
+
+                    <!-- Status Panel -->
+                    <div class="col-md-4">
+                        <!-- Today's Status -->
+                        <div class="status-card">
+                            <h5 class="text-danger mb-3">
+                                <i class="fas fa-calendar-day me-2"></i>
+                                Trạng thái hôm nay
+                            </h5>
+                            <div id="todayStatus">
+                                <div class="text-center">
+                                    <div class="spinner-border spinner-border-sm text-danger" role="status">
+                                        <span class="visually-hidden">Đang tải...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Check-outs -->
+                        <div class="card mt-3">
+                            <div class="card-header bg-danger text-white">
+                                <h6 class="mb-0">
+                                    <i class="fas fa-history me-2"></i>
+                                    Lịch sử check-out gần đây
+                                </h6>
+                            </div>
+                            <div class="card-body" id="recentCheckouts">
+                                <div class="text-center">
+                                    <div class="spinner-border spinner-border-sm text-danger" role="status">
+                                        <span class="visually-hidden">Đang tải...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+            <script src="/socket.io/socket.io.js"></script>
+            <script>
+                // Global variables
+                let currentStep = 1;
+                let selectedLocation = '';
+                let selectedMethod = '';
+                let employeeData = {};
+                let isCheckingOut = false;
+
+                // Initialize page
+                document.addEventListener('DOMContentLoaded', function () {
+                    console.log('DOM loaded, initializing checkout...');
+                    loadLocations();
+                    setupRFIDListener();
+                    setupButtonListeners();
+                    loadTodayStatus();
+                    loadRecentCheckouts();
+                });
+
+                // Load locations from API
+                async function loadLocations() {
+                    try {
+                        console.log('Loading locations...');
+                        const response = await fetch('/api/locations');
+
+                        console.log('Response status:', response.status);
+                        console.log('Response headers:', response.headers.get('content-type'));
+
+                        // Check if response is JSON
+                        const contentType = response.headers.get('content-type');
+                        if (!contentType || !contentType.includes('application/json')) {
+                            console.error('API response is not JSON');
+                            throw new Error('API trả về không phải JSON');
+                        }
+
+                        const data = await response.json();
+                        console.log('API response data:', data);
+
+                        // Check for authentication error
+                        if (response.status === 401 || data.error === 'AUTH_REQUIRED') {
+                            console.error('Authentication required');
+                            showMessage('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.', 'danger');
+                            // Redirect to login page after a delay
+                            setTimeout(() => {
+                                window.location.href = '/auth/login';
+                            }, 2000);
+                            return;
+                        }
+
+                        if (!data.success) {
+                            console.error('API returned error:', data.message);
+                            throw new Error(data.message || 'Failed to load locations');
+                        }
+
+                        const locations = data.locations || [];
+                        console.log('Loaded locations:', locations);
+                        const select = document.getElementById('locationSelect');
+
+                        if (!select) {
+                            console.error('locationSelect element not found');
+                            return;
+                        }
+
+                        select.innerHTML = '<option value="">Chọn vị trí...</option>';
+
+                        if (locations.length === 0) {
+                            showMessage('Không có vị trí nào trong hệ thống', 'warning');
+                            return;
+                        }
+
+                        locations.forEach(location => {
+                            const option = document.createElement('option');
+                            option.value = location.id;
+                            option.textContent = location.name;
+                            if (location.description) {
+                                option.title = location.description;
+                            }
+                            select.appendChild(option);
+                        });
+
+                        select.addEventListener('change', function () {
+                            selectedLocation = this.value;
+                            console.log('Location selected:', selectedLocation);
+                            const isDisabled = !selectedLocation;
+                            console.log('Button should be disabled:', isDisabled);
+                            const selectBtn = document.getElementById('selectLocationBtn');
+                            if (selectBtn) {
+                                selectBtn.disabled = isDisabled;
+                            }
+                        });
+                    } catch (error) {
+                        console.error('Error loading locations:', error);
+                        showMessage('Không thể tải danh sách vị trí. Vui lòng thử lại sau.', 'danger');
+
+                        // Disable location selection if API fails
+                        const select = document.getElementById('locationSelect');
+                        if (select) {
+                            select.innerHTML = '<option value="">Không thể tải vị trí</option>';
+                            select.disabled = true;
+                        }
+                    }
+                }
+
+                // Load today's status
+                async function loadTodayStatus() {
+                    try {
+                        const response = await fetch('/api/attendance/summary');
+
+                        if (response.ok) {
+                            const data = await response.json();
+                            const statusDiv = document.getElementById('todayStatus');
+
+                            if (data.success && data.data) {
+                                const status = data.data.today;
+                                let statusHtml = '';
+
+                                if (status.status === 'not_checked_in') {
+                                    statusHtml = `
+                                        <div class="text-center">
+                                            <i class="fas fa-clock text-warning fs-2"></i>
+                                            <p class="mt-2 mb-1"><strong>Chưa chấm công</strong></p>
+                                            <small class="text-muted">Chưa có check in hôm nay</small>
+                                        </div>
+                                    `;
+                                } else if (status.status === 'checked_in') {
+                                    statusHtml = `
+                                        <div class="text-center">
+                                            <i class="fas fa-play-circle text-success fs-2"></i>
+                                            <p class="mt-2 mb-1"><strong>Đang làm việc</strong></p>
+                                            <small class="text-muted">Giờ làm hôm nay: ${status.totalHours || 0} giờ</small>
+                                        </div>
+                                    `;
+                                } else if (status.status === 'checked_out') {
+                                    statusHtml = `
+                                        <div class="text-center">
+                                            <i class="fas fa-stop-circle text-danger fs-2"></i>
+                                            <p class="mt-2 mb-1"><strong>Đã kết thúc</strong></p>
+                                            <small class="text-muted">Tổng giờ làm: ${status.totalHours || 0} giờ</small>
+                                        </div>
+                                    `;
+                                }
+
+                                statusDiv.innerHTML = statusHtml;
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error loading today status:', error);
+                        const statusDiv = document.getElementById('todayStatus');
+                        if (statusDiv) {
+                            statusDiv.innerHTML = '<p class="text-muted">Không thể tải trạng thái</p>';
+                        }
+                    }
+                }
+
+                // Load recent check-outs
+                async function loadRecentCheckouts() {
+                    try {
+                        const response = await fetch('/api/attendance/history?limit=10');
+
+                        if (response.ok) {
+                            const data = await response.json();
+                            const container = document.getElementById('recentCheckouts');
+
+                            if (data.success && data.records && data.records.length > 0) {
+                                let html = '';
+                                data.records.forEach(record => {
+                                    const time = new Date(record.scan_time).toLocaleString('vi-VN', {
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                        day: '2-digit',
+                                        month: '2-digit'
+                                    });
+                                    const actionText = record.action_type === 'check_in' ? 'Vào' : 'Ra';
+                                    const actionClass = record.action_type === 'check_in' ? 'text-success' : 'text-danger';
+
+                                    html += `
+                                        <div class="recent-checkout">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span class="${actionClass} fw-bold">
+                                                    <i class="fas fa-${record.action_type === 'check_in' ? 'sign-in-alt' : 'sign-out-alt'}"></i> 
+                                                    ${actionText}
+                                                </span>
+                                                <small class="text-muted">${time}</small>
+                                            </div>
+                                        </div>
+                                    `;
+                                });
+                                container.innerHTML = html;
+                            } else {
+                                container.innerHTML = '<p class="text-muted text-center">Chưa có lịch sử chấm công</p>';
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error loading recent check-outs:', error);
+                        const container = document.getElementById('recentCheckouts');
+                        if (container) {
+                            container.innerHTML = '<p class="text-muted">Không thể tải lịch sử</p>';
+                        }
+                    }
+                }
+
+                // Setup button event listeners
+                function setupButtonListeners() {
+                    console.log('Setting up button listeners...');
+
+                    const selectLocationBtn = document.getElementById('selectLocationBtn');
+                    if (selectLocationBtn) {
+                        selectLocationBtn.addEventListener('click', function (e) {
+                            console.log('Select location button clicked');
+                            e.preventDefault();
+                            if (!this.disabled && selectedLocation) {
+                                console.log('Proceeding to step 2 with location:', selectedLocation);
+                                nextStep(2);
+                            } else {
+                                console.log('Button click ignored - disabled:', this.disabled, 'selectedLocation:', selectedLocation);
+                                showMessage('Vui lòng chọn vị trí trước', 'warning');
+                            }
+                        });
+                        console.log('Select location button listener added');
+                    } else {
+                        console.error('selectLocationBtn not found');
+                    }
+
+                    // Method buttons
+                    setupMethodButtons();
+                }
+
+                function setupMethodButtons() {
+                    // Method buttons
+                    const methodButtons = document.querySelectorAll('[data-method]');
+                    methodButtons.forEach(btn => {
+                        const method = btn.getAttribute('data-method');
+                        btn.addEventListener('click', function (e) {
+                            e.preventDefault();
+                            console.log('Method selected:', method);
+                            selectMethod(method);
+                        });
+                    });
+
+                    // Back buttons
+                    const backButtons = document.querySelectorAll('[data-action="back"]');
+                    backButtons.forEach(btn => {
+                        const step = btn.getAttribute('data-step');
+                        btn.addEventListener('click', function (e) {
+                            e.preventDefault();
+                            console.log('Back to step:', step);
+                            prevStep(parseInt(step));
+                        });
+                    });
+
+                    // Manual submit button
+                    const manualSubmitBtn = document.getElementById('manualSubmitBtn');
+                    if (manualSubmitBtn) {
+                        manualSubmitBtn.addEventListener('click', function (e) {
+                            e.preventDefault();
+                            console.log('Manual submit clicked');
+                            handleManualSubmit();
+                        });
+                    }
+                }
+
+                // Navigation functions
+                function nextStep(step) {
+                    console.log('nextStep called with step:', step, 'currentStep:', currentStep);
+                    console.log('selectedLocation:', selectedLocation);
+
+                    // Hide current step safely
+                    const currentStepElement = document.getElementById('step' + currentStep);
+                    if (currentStepElement) {
+                        currentStepElement.style.display = 'none';
+                    }
+
+                    // Show target step safely
+                    const targetStepElement = document.getElementById('step' + step);
+                    if (targetStepElement) {
+                        targetStepElement.style.display = 'block';
+                        currentStep = step;
+                    } else {
+                        console.error('Target step element not found: step' + step);
+                    }
+                }
+
+                function prevStep(step) {
+                    console.log('prevStep called with step:', step, 'currentStep:', currentStep);
+
+                    // Stop QR scanner if currently active
+                    if (currentStep === 3 && selectedMethod === 'qr') {
+                        stopQRScanner();
+                    }
+
+                    // Hide all step3 variants safely
+                    const step3Elements = ['step3-qr', 'step3-rfid', 'step3-manual'];
+                    step3Elements.forEach(elementId => {
+                        const element = document.getElementById(elementId);
+                        if (element) {
+                            element.style.display = 'none';
+                        }
+                    });
+
+                    // Hide current step safely
+                    const currentStepElement = document.getElementById('step' + currentStep);
+                    if (currentStepElement) {
+                        currentStepElement.style.display = 'none';
+                    }
+
+                    // Show target step safely
+                    const targetStepElement = document.getElementById('step' + step);
+                    if (targetStepElement) {
+                        targetStepElement.style.display = 'block';
+                        currentStep = step;
+                    } else {
+                        console.error('Target step element not found: step' + step);
+                    }
+                }
+
+                // Method selection
+                function selectMethod(method) {
+                    console.log('selectMethod called with method:', method);
+                    selectedMethod = method;
+
+                    // Hide all step3 variants first safely
+                    const step3Elements = ['step3-qr', 'step3-rfid', 'step3-manual'];
+                    step3Elements.forEach(elementId => {
+                        const element = document.getElementById(elementId);
+                        if (element) {
+                            element.style.display = 'none';
+                        }
+                    });
+
+                    // Hide step2 safely
+                    const step2Element = document.getElementById('step2');
+                    if (step2Element) {
+                        step2Element.style.display = 'none';
+                    }
+
+                    // Show appropriate step3 variant safely
+                    const targetStepElement = document.getElementById('step3-' + method);
+                    if (targetStepElement) {
+                        targetStepElement.style.display = 'block';
+                        currentStep = 3;
+
+                        // Initialize method-specific functionality
+                        if (method === 'qr') {
+                            startQRScanner();
+                        } else if (method === 'rfid') {
+                            focusRFIDInput();
+                        } else if (method === 'manual') {
+                            setupManualInput();
+                        }
+                    } else {
+                        console.error('Target step3 element not found: step3-' + method);
+                    }
+                }
+
+                // QR Scanner functions
+                function startQRScanner() {
+                    const video = document.getElementById('qrVideo');
+                    const canvas = document.getElementById('qrCanvas');
+                    const statusDiv = document.querySelector('.scanner-status');
+
+                    if (!video || !canvas || !statusDiv) {
+                        console.error('QR scanner elements not found');
+                        showMessage('Lỗi khởi tạo máy quét QR', 'error');
+                        return;
+                    }
+
+                    // Show video element
+                    video.style.display = 'block';
+                    statusDiv.textContent = 'Đang khởi động camera...';
+
+                    // Check if browser supports getUserMedia
+                    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                        navigator.mediaDevices.getUserMedia({
+                            video: {
+                                facingMode: 'environment' // Use back camera on mobile
+                            }
+                        })
+                            .then(function (stream) {
+                                video.srcObject = stream;
+                                video.play();
+                                statusDiv.textContent = 'Đang quét mã QR... Hãy đưa mã vào khung hình';
+
+                                // Start scanning when video is ready
+                                video.addEventListener('loadedmetadata', () => {
+                                    scanQRCode(video, canvas);
+                                });
+                            })
+                            .catch(function (error) {
+                                console.error('Error accessing camera:', error);
+                                statusDiv.textContent = 'Lỗi truy cập camera';
+                                showMessage('Không thể truy cập camera. Vui lòng cho phép quyền camera.', 'error');
+                                video.style.display = 'none';
+                            });
+                    } else {
+                        statusDiv.textContent = 'Trình duyệt không hỗ trợ camera';
+                        showMessage('Trình duyệt không hỗ trợ camera', 'error');
+                    }
+                }
+
+                function scanQRCode(video, canvas) {
+                    const context = canvas.getContext('2d');
+
+                    function tick() {
+                        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                            canvas.width = video.videoWidth;
+                            canvas.height = video.videoHeight;
+                            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+
+                            // Use jsQR library to decode QR code (would need to include jsQR library)
+                            // For now, simulate QR detection after a few seconds
+                            setTimeout(() => {
+                                if (selectedMethod === 'qr' && currentStep === 3) {
+                                    // Simulate QR code detection
+                                    processQRCode('{"id": "001", "name": "Test User"}');
+                                }
+                            }, 3000);
+
+                            return; // Remove this when implementing real QR scanning
+                        }
+
+                        // Continue scanning
+                        if (selectedMethod === 'qr' && currentStep === 3) {
+                            requestAnimationFrame(tick);
+                        }
+                    }
+
+                    requestAnimationFrame(tick);
+                }
+
+                function stopQRScanner() {
+                    const video = document.getElementById('qrVideo');
+                    if (!video) {
+                        console.error('QR video element not found');
+                        return;
+                    }
+
+                    if (video.srcObject) {
+                        const tracks = video.srcObject.getTracks();
+                        tracks.forEach(track => track.stop());
+                        video.srcObject = null;
+                    }
+                    video.style.display = 'none';
+                }
+
+                function processQRCode(qrData) {
+                    if (isCheckingOut) return;
+
+                    try {
+                        const employeeInfo = JSON.parse(qrData);
+                        employeeData = {
+                            id: employeeInfo.id,
+                            name: employeeInfo.name
+                        };
+                        stopQRScanner();
+                        submitAttendance('qr');
+                    } catch (error) {
+                        console.error('Error processing QR code:', error);
+                        showMessage('Mã QR không hợp lệ', 'error');
+                    }
+                }
+
+                // RFID functions
+                function setupRFIDListener() {
+                    const rfidInput = document.getElementById('rfidInput');
+                    if (rfidInput) {
+                        rfidInput.addEventListener('input', function (e) {
+                            if (selectedMethod === 'rfid' && currentStep === 3) {
+                                handleRFIDInput(e.target.value);
+                            }
+                        });
+                    }
+                }
+
+                function focusRFIDInput() {
+                    setTimeout(() => {
+                        const rfidInput = document.getElementById('rfidInput');
+                        if (rfidInput) {
+                            rfidInput.focus();
+                            rfidInput.value = '';
+                        }
+                    }, 100);
+                }
+
+                function handleRFIDInput(rfidValue) {
+                    if (rfidValue.length >= 3 && !isCheckingOut) {
+                        document.getElementById('rfid-status').innerHTML = '<span class="badge bg-success">Đã nhận thẻ RFID...</span>';
+
+                        // Process RFID after short delay
+                        setTimeout(() => {
+                            processRFID(rfidValue);
+                        }, 500);
+                    }
+                }
+
+                function processRFID(rfidValue) {
+                    if (isCheckingOut) return;
+
+                    employeeData = {
+                        rfid: rfidValue
+                    };
+                    submitAttendance('rfid');
+                }
+
+                // Manual input functions
+                function setupManualInput() {
+                    const employeeIdInput = document.getElementById('employeeId');
+                    const employeeNameInput = document.getElementById('employeeName');
+                    const searchResults = document.getElementById('employeeSearchResults');
+
+                    if (employeeIdInput) {
+                        employeeIdInput.addEventListener('input', function (e) {
+                            const query = e.target.value.trim();
+                            if (query.length >= 2) {
+                                searchEmployees(query);
+                            } else {
+                                if (searchResults) {
+                                    searchResults.style.display = 'none';
+                                }
+                                if (employeeNameInput) {
+                                    employeeNameInput.value = '';
+                                }
+                            }
+                        });
+
+                        // Add keyboard navigation support
+                        employeeIdInput.addEventListener('keydown', function (e) {
+                            const items = searchResults.querySelectorAll('.employee-search-item');
+                            let selectedIndex = -1;
+
+                            // Find currently selected item
+                            items.forEach((item, index) => {
+                                if (item.classList.contains('selected')) {
+                                    selectedIndex = index;
+                                }
+                            });
+
+                            if (e.key === 'ArrowDown') {
+                                e.preventDefault();
+                                selectedIndex = Math.min(selectedIndex + 1, items.length - 1);
+                                updateSelection(items, selectedIndex);
+                            } else if (e.key === 'ArrowUp') {
+                                e.preventDefault();
+                                selectedIndex = Math.max(selectedIndex - 1, 0);
+                                updateSelection(items, selectedIndex);
+                            } else if (e.key === 'Enter') {
+                                e.preventDefault();
+                                if (selectedIndex >= 0 && items[selectedIndex]) {
+                                    const empId = items[selectedIndex].getAttribute('data-employee-id');
+                                    const empName = items[selectedIndex].getAttribute('data-employee-name');
+                                    selectEmployee(empId, empName);
+                                }
+                            } else if (e.key === 'Escape') {
+                                searchResults.style.display = 'none';
+                            }
+                        });
+                    }
+
+                    // Hide search results when clicking outside
+                    document.addEventListener('click', function (e) {
+                        if (searchResults && !searchResults.contains(e.target) &&
+                            e.target !== employeeIdInput) {
+                            searchResults.style.display = 'none';
+                        }
+                    });
+                }
+
+                function updateSelection(items, selectedIndex) {
+                    items.forEach((item, index) => {
+                        if (index === selectedIndex) {
+                            item.classList.add('selected');
+                            item.style.backgroundColor = '#e3f2fd';
+                        } else {
+                            item.classList.remove('selected');
+                            item.style.backgroundColor = '';
+                        }
+                    });
+                }
+
+                async function searchEmployees(query) {
+                    try {
+                        const response = await fetch(`/api/employees/search?q=${encodeURIComponent(query)}`);
+
+                        if (!response.ok) {
+                            throw new Error(`HTTP ${response.status}`);
+                        }
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            displaySearchResults(data.employees);
+                        } else {
+                            console.error('Search API error:', data.message);
+                            displaySearchResults([]);
+                        }
+                    } catch (error) {
+                        console.error('Error searching employees:', error);
+                        displaySearchResults([]);
+                        showMessage('Không thể tìm kiếm nhân viên. Vui lòng thử lại.', 'error');
+                    }
+                }
+
+                function displaySearchResults(employees) {
+                    const searchResults = document.getElementById('employeeSearchResults');
+
+                    if (!searchResults) {
+                        console.error('employeeSearchResults element not found');
+                        return;
+                    }
+
+                    if (employees.length === 0) {
+                        searchResults.style.display = 'none';
+                        return;
+                    }
+
+                    searchResults.innerHTML = employees.map((emp, index) => `
+                <div class="employee-search-item" data-employee-id="${emp.id}" data-employee-name="${emp.name}" data-index="${index}">
+                    <div class="employee-id">ID: ${emp.id}</div>
+                    <div class="employee-name">${emp.name}</div>
+                    ${emp.department ? `<div class="employee-department" style="font-size: 0.8em; color: #6c757d;">${emp.department}</div>` : ''}
+                </div>
+            `).join('');
+
+                    // Add click event listeners to search results
+                    const searchItems = searchResults.querySelectorAll('.employee-search-item');
+                    searchItems.forEach((item, index) => {
+                        item.addEventListener('click', function () {
+                            const empId = this.getAttribute('data-employee-id');
+                            const empName = this.getAttribute('data-employee-name');
+                            selectEmployee(empId, empName);
+                        });
+
+                        item.addEventListener('mouseenter', function () {
+                            updateSelection(searchItems, index);
+                        });
+                    });
+
+                    searchResults.style.display = 'block';
+                }
+
+                function selectEmployee(id, name) {
+                    const employeeIdInput = document.getElementById('employeeId');
+                    const employeeNameInput = document.getElementById('employeeName');
+                    const searchResults = document.getElementById('employeeSearchResults');
+
+                    if (employeeIdInput) {
+                        employeeIdInput.value = id;
+                    }
+                    if (employeeNameInput) {
+                        employeeNameInput.value = name;
+                    }
+                    if (searchResults) {
+                        searchResults.style.display = 'none';
+                        searchResults.innerHTML = ''; // Clear search results after selection
+                    }
+
+                    employeeData = { id, name };
+                }
+
+                function handleManualSubmit() {
+                    const employeeIdInput = document.getElementById('employeeId');
+                    if (!employeeIdInput) {
+                        console.error('Employee ID input not found');
+                        showMessage('Lỗi hệ thống', 'error');
+                        return;
+                    }
+
+                    const employeeId = employeeIdInput.value.trim();
+                    if (!employeeId) {
+                        showMessage('Vui lòng nhập mã nhân viên', 'error');
+                        return;
+                    }
+
+                    if (!employeeData.id) {
+                        employeeData = { id: employeeId };
+                    }
+
+                    submitAttendance('manual');
+                }
+
+                // Submit attendance
+                async function submitAttendance(method) {
+                    if (isCheckingOut) return;
+                    isCheckingOut = true;
+
+                    try {
+                        const attendanceData = {
+                            location: selectedLocation,
+                            method: method,
+                            employeeData: employeeData,
+                            type: 'checkout'
+                        };
+
+                        // Use new checkout API endpoint
+                        const response = await fetch('/api/attendance/checkout', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                rfid_card: employeeData.rfid || employeeData.id,
+                                location: selectedLocation,
+                                method: method
+                            })
+                        });
+
+                        const result = await response.json();
+
+                        if (result.success) {
+                            showMessage(`Check-out thành công! ${result.message || ''}`, 'success');
+                            // Reload status and history
+                            loadTodayStatus();
+                            loadRecentCheckouts();
+                            // Reset form after successful submission
+                            setTimeout(() => {
+                                resetForm();
+                            }, 2000);
+                        } else {
+                            showMessage(result.message || 'Có lỗi xảy ra khi check-out', 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error submitting attendance:', error);
+                        showMessage('Lỗi kết nối. Vui lòng thử lại.', 'error');
+                    } finally {
+                        isCheckingOut = false;
+                    }
+                }
+
+                function resetForm() {
+                    console.log('resetForm called');
+
+                    // Reset to step 1 safely
+                    const elementsToHide = ['step2', 'step3-qr', 'step3-rfid', 'step3-manual'];
+                    elementsToHide.forEach(elementId => {
+                        const element = document.getElementById(elementId);
+                        if (element) {
+                            element.style.display = 'none';
+                        }
+                    });
+
+                    const step1Element = document.getElementById('step1');
+                    if (step1Element) {
+                        step1Element.style.display = 'block';
+                    }
+
+                    // Reset variables
+                    currentStep = 1;
+                    selectedLocation = '';
+                    selectedMethod = '';
+                    employeeData = {};
+
+                    // Reset form fields safely
+                    const locationSelect = document.getElementById('locationSelect');
+                    if (locationSelect) locationSelect.value = '';
+
+                    const selectLocationBtn = document.getElementById('selectLocationBtn');
+                    if (selectLocationBtn) selectLocationBtn.disabled = true;
+
+                    const employeeId = document.getElementById('employeeId');
+                    if (employeeId) employeeId.value = '';
+
+                    const employeeName = document.getElementById('employeeName');
+                    if (employeeName) employeeName.value = '';
+
+                    const rfidInput = document.getElementById('rfidInput');
+                    if (rfidInput) rfidInput.value = '';
+                }
+
+                function showMessage(message, type) {
+                    const messageDiv = document.getElementById('resultMessage');
+                    let alertClass, iconClass;
+
+                    switch (type) {
+                        case 'success':
+                            alertClass = 'alert-success';
+                            iconClass = 'fa-check-circle';
+                            break;
+                        case 'warning':
+                            alertClass = 'alert-warning';
+                            iconClass = 'fa-exclamation-triangle';
+                            break;
+                        case 'danger':
+                        case 'error':
+                        default:
+                            alertClass = 'alert-danger';
+                            iconClass = 'fa-exclamation-triangle';
+                            break;
+                    }
+
+                    messageDiv.innerHTML = `
+                <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+                    <i class="fas ${iconClass} me-2"></i>
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+
+                    // Auto hide after 5 seconds
+                    setTimeout(() => {
+                        const alert = messageDiv.querySelector('.alert');
+                        if (alert) {
+                            const bsAlert = new bootstrap.Alert(alert);
+                            bsAlert.close();
+                        }
+                    }, 5000);
+                }
+            </script>
+
+            <!-- Include shared scripts -->
+            <%- include('../partials/scripts') %>
+</body>
+
+</html>

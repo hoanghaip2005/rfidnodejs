@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= title %>
+    </title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+        integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Include shared styles -->
+    <%- include('../partials/styles') %>
+
+        <style>
+            /* Page-specific styles for admin dashboard */
+
+            .topbar {
+                background: rgba(255, 255, 255, 0.8);
+                backdrop-filter: blur(20px);
+                border-bottom: 1px solid var(--gray-100);
+                padding: 1rem 2rem;
+                position: sticky;
+                top: 0;
+                z-index: 100;
+            }
+
+            .page-title {
+                font-size: 1.875rem;
+                font-weight: 700;
+                color: var(--gray-900);
+                margin: 0;
+            }
+
+            .page-subtitle {
+                color: var(--gray-500);
+                font-size: 0.875rem;
+                margin-top: 0.25rem;
+            }
+
+            .datetime-badge {
+                background: linear-gradient(135deg, var(--accent-color), var(--primary-color));
+                color: white;
+                padding: 0.5rem 1rem;
+                border-radius: 50px;
+                font-size: 0.875rem;
+                font-weight: 500;
+                border: none;
+            }
+
+            .content-area {
+                padding: 2rem;
+            }
+
+            /* Modern Stats Cards */
+            .stats-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+                gap: 1.5rem;
+                margin-bottom: 2rem;
+            }
+
+            .stats-card {
+                background: white;
+                border-radius: var(--border-radius);
+                padding: 2rem;
+                border: 1px solid var(--gray-100);
+                transition: all 0.3s ease;
+                position: relative;
+                overflow: hidden;
+            }
+
+            .stats-card::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 4px;
+                background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            }
+
+            .stats-card:hover {
+                transform: translateY(-4px);
+                box-shadow: var(--shadow-xl);
+                border-color: var(--primary-color);
+            }
+
+            .stats-header {
+                display: flex;
+                justify-content: between;
+                align-items: flex-start;
+                margin-bottom: 1rem;
+            }
+
+            .stats-icon {
+                width: 60px;
+                height: 60px;
+                border-radius: 16px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.5rem;
+                margin-bottom: 1rem;
+            }
+
+            .stats-icon.icon-users {
+                background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(139, 92, 246, 0.1));
+                color: var(--primary-color);
+            }
+
+            .stats-icon.icon-today {
+                background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(6, 182, 212, 0.1));
+                color: var(--success-color);
+            }
+
+            .stats-icon.icon-month {
+                background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(251, 191, 36, 0.1));
+                color: var(--warning-color);
+            }
+
+            .stats-icon.icon-active {
+                background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(244, 63, 94, 0.1));
+                color: var(--danger-color);
+            }
+
+            .stats-number {
+                font-size: 2.5rem;
+                font-weight: 700;
+                color: var(--gray-900);
+                margin-bottom: 0.25rem;
+            }
+
+            .stats-label {
+                color: var(--gray-600);
+                font-size: 0.875rem;
+                font-weight: 500;
+            }
+
+            .stats-change {
+                font-size: 0.75rem;
+                padding: 0.25rem 0.5rem;
+                border-radius: 20px;
+                font-weight: 600;
+                margin-top: 0.5rem;
+                display: inline-block;
+            }
+
+            .stats-change.positive {
+                background: rgba(16, 185, 129, 0.1);
+                color: var(--success-color);
+            }
+
+            .stats-change.negative {
+                background: rgba(239, 68, 68, 0.1);
+                color: var(--danger-color);
+            }
+
+            /* Modern Cards */
+            .modern-card {
+                background: white;
+                border-radius: var(--border-radius);
+                border: 1px solid var(--gray-100);
+                overflow: hidden;
+                transition: all 0.3s ease;
+            }
+
+            .modern-card:hover {
+                box-shadow: var(--shadow-lg);
+            }
+
+            .card-header-modern {
+                background: linear-gradient(135deg, var(--gray-50), white);
+                padding: 1.5rem;
+                border-bottom: 1px solid var(--gray-100);
+            }
+
+            .card-title {
+                font-size: 1.125rem;
+                font-weight: 600;
+                color: var(--gray-900);
+                margin: 0;
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+            /* Activity List */
+            .activity-list {
+                padding: 0;
+            }
+
+            .activity-item {
+                padding: 1.5rem;
+                border-bottom: 1px solid var(--gray-100);
+                transition: all 0.2s ease;
+            }
+
+            .activity-item:hover {
+                background: var(--gray-50);
+            }
+
+            .activity-item:last-child {
+                border-bottom: none;
+            }
+
+            .activity-icon-modern {
+                width: 48px;
+                height: 48px;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.125rem;
+                margin-right: 1rem;
+            }
+
+            .activity-icon-modern.check-in {
+                background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(6, 182, 212, 0.1));
+                color: var(--success-color);
+            }
+
+            .activity-icon-modern.check-out {
+                background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(244, 63, 94, 0.1));
+                color: var(--danger-color);
+            }
+
+            .activity-content {
+                flex: 1;
+            }
+
+            .activity-title {
+                font-weight: 600;
+                color: var(--gray-900);
+                margin-bottom: 0.25rem;
+            }
+
+            .activity-description {
+                color: var(--gray-600);
+                font-size: 0.875rem;
+                margin-bottom: 0.5rem;
+            }
+
+            .activity-time {
+                color: var(--gray-500);
+                font-size: 0.75rem;
+            }
+
+            .activity-badge {
+                padding: 0.25rem 0.75rem;
+                border-radius: 50px;
+                font-size: 0.75rem;
+                font-weight: 600;
+            }
+
+            .badge-success {
+                background: rgba(16, 185, 129, 0.1);
+                color: var(--success-color);
+            }
+
+            .badge-danger {
+                background: rgba(239, 68, 68, 0.1);
+                color: var(--danger-color);
+            }
+
+            /* System Status */
+            .status-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 1rem;
+                border: 1px solid var(--gray-100);
+                border-radius: 12px;
+                margin-bottom: 0.75rem;
+                background: white;
+                transition: all 0.2s ease;
+            }
+
+            .status-item:hover {
+                border-color: var(--primary-color);
+                background: rgba(99, 102, 241, 0.02);
+            }
+
+            .status-indicator {
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+                margin-right: 0.75rem;
+            }
+
+            .status-indicator.online {
+                background: var(--success-color);
+                box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+            }
+
+            .status-indicator.offline {
+                background: var(--danger-color);
+                box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+            }
+
+            .status-indicator.warning {
+                background: var(--warning-color);
+                box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.2);
+            }
+
+            /* Quick Actions */
+            .quick-action-btn {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.5rem;
+                padding: 0.875rem 1.5rem;
+                border: 2px solid var(--gray-200);
+                border-radius: 12px;
+                background: white;
+                color: var(--gray-700);
+                text-decoration: none;
+                font-weight: 500;
+                transition: all 0.2s ease;
+                margin-bottom: 0.75rem;
+            }
+
+            .quick-action-btn:hover {
+                border-color: var(--primary-color);
+                background: rgba(99, 102, 241, 0.02);
+                color: var(--primary-color);
+                transform: translateY(-1px);
+            }
+
+            /* Loading States */
+            .skeleton {
+                background: linear-gradient(90deg, var(--gray-200) 25%, var(--gray-100) 50%, var(--gray-200) 75%);
+                background-size: 200% 100%;
+                animation: loading 1.5s infinite;
+            }
+
+            @keyframes loading {
+                0% {
+                    background-position: 200% 0;
+                }
+
+                100% {
+                    background-position: -200% 0;
+                }
+            }
+
+            /* Responsive Design */
+            @media (max-width: 1024px) {
+                .sidebar {
+                    transform: translateX(-100%);
+                }
+
+                .sidebar.mobile-open {
+                    transform: translateX(0);
+                }
+
+                .main-content {
+                    margin-left: 0;
+                }
+
+                .topbar {
+                    padding: 1rem;
+                }
+
+                .content-area {
+                    padding: 1rem;
+                }
+
+                .stats-grid {
+                    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                    gap: 1rem;
+                }
+            }
+
+            @media (max-width: 640px) {
+                .stats-grid {
+                    grid-template-columns: 1fr;
+                }
+
+                .stats-card {
+                    padding: 1.5rem;
+                }
+
+                .page-title {
+                    font-size: 1.5rem;
+                }
+            }
+
+            /* Animations */
+            .fade-in {
+                animation: fadeIn 0.6s ease-out;
+            }
+
+            .slide-up {
+                animation: slideUp 0.6s ease-out;
+            }
+
+            @keyframes fadeIn {
+                from {
+                    opacity: 0;
+                }
+
+                to {
+                    opacity: 1;
+                }
+            }
+
+            @keyframes slideUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            /* Notification Styles */
+            .notification {
+                position: fixed;
+                top: 2rem;
+                right: 2rem;
+                z-index: 9999;
+                min-width: 320px;
+                background: white;
+                border-radius: 12px;
+                box-shadow: var(--shadow-xl);
+                border: 1px solid var(--gray-200);
+                overflow: hidden;
+                animation: slideInRight 0.3s ease-out;
+            }
+
+            @keyframes slideInRight {
+                from {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+
+                to {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+            }
+
+            .notification-header {
+                padding: 1rem 1.5rem;
+                background: linear-gradient(135deg, var(--success-color), var(--accent-color));
+                color: white;
+                font-weight: 600;
+            }
+
+            .notification-body {
+                padding: 1rem 1.5rem;
+                color: var(--gray-700);
+            }
+        </style>
+</head>
+
+<body>
+    <!-- Mobile Menu Toggle -->
+    <button class="btn btn-light position-fixed d-lg-none" id="mobileMenuToggle"
+        style="top: 1rem; left: 1rem; z-index: 1100;">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Include shared sidebar -->
+    <%- include('../partials/sidebar') %>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Topbar -->
+            <div class="topbar">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="page-title">Dashboard</h1>
+                        <p class="page-subtitle mb-0">Tổng quan hệ thống chấm công RFID</p>
+                    </div>
+                    <div class="datetime-badge">
+                        <i class="fas fa-clock me-2"></i>
+                        <span id="currentDateTime"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Area -->
+            <div class="content-area">
+                <!-- Stats Grid -->
+                <div class="stats-grid slide-up">
+                    <div class="stats-card">
+                        <div class="stats-icon icon-users">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stats-number animate-number">
+                            <%= stats.totalUsers %>
+                        </div>
+                        <div class="stats-label">Tổng người dùng</div>
+                        <div class="stats-change positive">
+                            <i class="fas fa-arrow-up me-1"></i>
+                            +5 người dùng mới
+                        </div>
+                    </div>
+
+                    <div class="stats-card">
+                        <div class="stats-icon icon-today">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stats-number animate-number">
+                            <%= stats.todayAttendance %>
+                        </div>
+                        <div class="stats-label">Chấm công hôm nay</div>
+                        <div class="stats-change positive">
+                            <i class="fas fa-arrow-up me-1"></i>
+                            +12% so với hôm qua
+                        </div>
+                    </div>
+
+                    <div class="stats-card">
+                        <div class="stats-icon icon-month">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="stats-number animate-number">
+                            <%= stats.monthAttendance %>
+                        </div>
+                        <div class="stats-label">Chấm công tháng này</div>
+                        <div class="stats-change positive">
+                            <i class="fas fa-arrow-up me-1"></i>
+                            Tăng 8%
+                        </div>
+                    </div>
+
+                    <div class="stats-card">
+                        <div class="stats-icon icon-active">
+                            <i class="fas fa-user-check"></i>
+                        </div>
+                        <div class="stats-number animate-number">
+                            <%= stats.activeUsersToday %>
+                        </div>
+                        <div class="stats-label">Hoạt động hôm nay</div>
+                        <div class="stats-change positive">
+                            <i class="fas fa-arrow-up me-1"></i>
+                            85% tham gia
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main Dashboard Content -->
+                <div class="row">
+                    <!-- Recent Activities -->
+                    <div class="col-lg-8 mb-4">
+                        <div class="modern-card fade-in">
+                            <div class="card-header-modern">
+                                <h5 class="card-title">
+                                    <i class="fas fa-clock text-primary"></i>
+                                    Hoạt động gần đây
+                                </h5>
+                            </div>
+                            <div class="activity-list" id="recentActivities">
+                                <div class="text-center py-5">
+                                    <div class="skeleton"
+                                        style="width: 40px; height: 40px; border-radius: 50%; margin: 0 auto 1rem;">
+                                    </div>
+                                    <div class="skeleton" style="width: 200px; height: 20px; margin: 0 auto 0.5rem;">
+                                    </div>
+                                    <div class="skeleton" style="width: 150px; height: 16px; margin: 0 auto;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sidebar Content -->
+                    <div class="col-lg-4">
+                        <!-- System Status -->
+                        <div class="modern-card mb-4 fade-in">
+                            <div class="card-header-modern">
+                                <h5 class="card-title">
+                                    <i class="fas fa-server text-success"></i>
+                                    Trạng thái hệ thống
+                                </h5>
+                            </div>
+                            <div class="p-3">
+                                <div class="status-item">
+                                    <div class="d-flex align-items-center">
+                                        <div class="status-indicator online"></div>
+                                        <div>
+                                            <div class="fw-semibold">Database</div>
+                                            <small class="text-muted">Kết nối ổn định</small>
+                                        </div>
+                                    </div>
+                                    <i class="fas fa-database text-success"></i>
+                                </div>
+
+                                <div class="status-item">
+                                    <div class="d-flex align-items-center">
+                                        <div class="status-indicator" id="rfidIndicator"></div>
+                                        <div>
+                                            <div class="fw-semibold">RFID Reader</div>
+                                            <small class="text-muted" id="rfidStatusText">Đang kiểm tra...</small>
+                                        </div>
+                                    </div>
+                                    <i class="fas fa-id-card text-info"></i>
+                                </div>
+
+                                <div class="status-item">
+                                    <div class="d-flex align-items-center">
+                                        <div class="status-indicator online"></div>
+                                        <div>
+                                            <div class="fw-semibold">Socket.IO</div>
+                                            <small class="text-muted">Hoạt động bình thường</small>
+                                        </div>
+                                    </div>
+                                    <i class="fas fa-broadcast-tower text-primary"></i>
+                                </div>
+
+                                <div class="status-item">
+                                    <div class="d-flex align-items-center">
+                                        <div class="status-indicator online"></div>
+                                        <div>
+                                            <div class="fw-semibold">Security</div>
+                                            <small class="text-muted">Được bảo mật</small>
+                                        </div>
+                                    </div>
+                                    <i class="fas fa-shield-alt text-warning"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div class="modern-card fade-in">
+                            <div class="card-header-modern">
+                                <h5 class="card-title">
+                                    <i class="fas fa-bolt text-warning"></i>
+                                    Thao tác nhanh
+                                </h5>
+                            </div>
+                            <div class="p-3">
+                                <a href="/admin/users" class="quick-action-btn">
+                                    <i class="fas fa-user-plus"></i>
+                                    Thêm người dùng mới
+                                </a>
+
+                                <a href="/admin/reports" class="quick-action-btn">
+                                    <i class="fas fa-download"></i>
+                                    Xuất báo cáo tháng
+                                </a>
+
+                                <a href="/admin/settings" class="quick-action-btn">
+                                    <i class="fas fa-cogs"></i>
+                                    Cài đặt hệ thống
+                                </a>
+
+                                <a href="/events" class="quick-action-btn">
+                                    <i class="fas fa-calendar-plus"></i>
+                                    Tạo sự kiện mới
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="/js/main.js"></script>
+        <script>
+            // Initialize Socket.IO
+            const socket = io();
+
+            // Update current date/time
+            function updateDateTime() {
+                const now = new Date();
+                const options = {
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    timeZone: 'Asia/Ho_Chi_Minh'
+                };
+                document.getElementById('currentDateTime').textContent =
+                    now.toLocaleString('vi-VN', options);
+            }
+
+            // Update every second
+            setInterval(updateDateTime, 1000);
+            updateDateTime();
+
+            // Handle RFID status updates
+            socket.on('rfid_status', function (data) {
+                const indicator = document.getElementById('rfidIndicator');
+                const statusText = document.getElementById('rfidStatusText');
+
+                if (data.connected) {
+                    indicator.className = 'status-indicator online';
+                    statusText.textContent = 'Kết nối ổn định';
+                } else {
+                    indicator.className = 'status-indicator offline';
+                    statusText.textContent = 'Mất kết nối';
+                }
+            });
+
+            // Handle attendance updates
+            socket.on('attendance_update', function (data) {
+                loadRecentActivities();
+                showNotification(`${data.user_name} đã chấm công ${data.action_type === 'check_in' ? 'vào' : 'ra'}`, 'success');
+            });
+
+            // Show modern notification
+            function showNotification(message, type = 'info') {
+                const notification = document.createElement('div');
+                notification.className = 'notification';
+
+                const header = type === 'success' ? 'Thành công' : type === 'error' ? 'Lỗi' : 'Thông báo';
+                const iconClass = type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+
+                notification.innerHTML = `
+                <div class="notification-header">
+                    <i class="fas ${iconClass} me-2"></i>
+                    ${header}
+                </div>
+                <div class="notification-body">
+                    ${message}
+                </div>
+            `;
+
+                document.body.appendChild(notification);
+
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.style.animation = 'slideOutRight 0.3s ease-out';
+                        setTimeout(() => notification.remove(), 300);
+                    }
+                }, 5000);
+            }
+
+            // Load recent activities with modern design
+            async function loadRecentActivities() {
+                try {
+                    const response = await fetch('/admin/api/attendance?limit=10');
+                    const data = await response.json();
+
+                    const container = document.getElementById('recentActivities');
+
+                    if (!data.success || data.data.records.length === 0) {
+                        container.innerHTML = `
+                        <div class="text-center py-5">
+                            <div class="mb-3">
+                                <i class="fas fa-inbox text-muted" style="font-size: 3rem; opacity: 0.3;"></i>
+                            </div>
+                            <p class="text-muted mb-0">Chưa có hoạt động nào</p>
+                            <small class="text-muted">Các hoạt động sẽ hiển thị ở đây</small>
+                        </div>
+                    `;
+                        return;
+                    }
+
+                    const activities = data.data.records.map((record, index) => {
+                        const time = new Date(record.scan_time).toLocaleString('vi-VN');
+                        const actionText = record.action_type === 'check_in' ? 'Chấm công vào' : 'Chấm công ra';
+                        const iconClass = record.action_type === 'check_in' ? 'check-in' : 'check-out';
+                        const badgeClass = record.action_type === 'check_in' ? 'badge-success' : 'badge-danger';
+                        const timeAgo = getTimeAgo(new Date(record.scan_time));
+
+                        return `
+                        <div class="activity-item" style="animation: slideUp 0.6s ease-out ${index * 0.1}s both;">
+                            <div class="d-flex align-items-start">
+                                <div class="activity-icon-modern ${iconClass}">
+                                    <i class="fas ${record.action_type === 'check_in' ? 'fa-sign-in-alt' : 'fa-sign-out-alt'}"></i>
+                                </div>
+                                <div class="activity-content flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h6 class="activity-title">${record.user_name}</h6>
+                                            <p class="activity-description">${actionText}</p>
+                                            <div class="activity-time">
+                                                <i class="fas fa-clock me-1"></i>
+                                                ${time} • ${timeAgo}
+                                            </div>
+                                        </div>
+                                        <span class="activity-badge ${badgeClass}">
+                                            ${record.action_type === 'check_in' ? 'Vào' : 'Ra'}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    }).join('');
+
+                    container.innerHTML = activities;
+
+                    // Add stagger animation
+                    const items = container.querySelectorAll('.activity-item');
+                    items.forEach((item, index) => {
+                        item.style.animationDelay = `${index * 0.1}s`;
+                    });
+
+                } catch (error) {
+                    console.error('Error loading recent activities:', error);
+                    document.getElementById('recentActivities').innerHTML = `
+                    <div class="text-center py-5">
+                        <div class="mb-3">
+                            <i class="fas fa-exclamation-triangle text-danger" style="font-size: 3rem; opacity: 0.5;"></i>
+                        </div>
+                        <p class="text-danger mb-2">Không thể tải dữ liệu</p>
+                        <button class="btn btn-outline-primary btn-sm" onclick="loadRecentActivities()">
+                            <i class="fas fa-redo me-1"></i>Thử lại
+                        </button>
+                    </div>
+                `;
+                }
+            }
+
+            // Get time ago with Vietnamese
+            function getTimeAgo(date) {
+                const now = new Date();
+                const diff = now - date;
+                const minutes = Math.floor(diff / 60000);
+                const hours = Math.floor(diff / 3600000);
+                const days = Math.floor(diff / 86400000);
+
+                if (days > 0) return `${days} ngày trước`;
+                if (hours > 0) return `${hours} giờ trước`;
+                if (minutes > 0) return `${minutes} phút trước`;
+                return 'Vừa xong';
+            }
+
+            // Modern logout function - Using global logout function from main.js
+            // The logout function is already defined in main.js and exported globally
+
+            // Custom confirmation modal
+            function showConfirmation(title, message, confirmText, cancelText) {
+                return new Promise((resolve) => {
+                    const modal = document.createElement('div');
+                    modal.style.cssText = `
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.5);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 10000;
+                    backdrop-filter: blur(5px);
+                `;
+
+                    modal.innerHTML = `
+                    <div style="
+                        background: white;
+                        border-radius: 16px;
+                        padding: 2rem;
+                        max-width: 400px;
+                        width: 90%;
+                        box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+                        animation: slideUp 0.3s ease-out;
+                    ">
+                        <h5 style="margin: 0 0 1rem 0; color: var(--gray-900);">${title}</h5>
+                        <p style="margin: 0 0 2rem 0; color: var(--gray-600);">${message}</p>
+                        <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                            <button id="cancelBtn" style="
+                                padding: 0.5rem 1rem;
+                                border: 2px solid var(--gray-300);
+                                background: white;
+                                color: var(--gray-700);
+                                border-radius: 8px;
+                                cursor: pointer;
+                                font-weight: 500;
+                            ">${cancelText}</button>
+                            <button id="confirmBtn" style="
+                                padding: 0.5rem 1rem;
+                                border: none;
+                                background: var(--danger-color);
+                                color: white;
+                                border-radius: 8px;
+                                cursor: pointer;
+                                font-weight: 500;
+                            ">${confirmText}</button>
+                        </div>
+                    </div>
+                `;
+
+                    document.body.appendChild(modal);
+
+                    document.getElementById('confirmBtn').onclick = () => {
+                        modal.remove();
+                        resolve(true);
+                    };
+
+                    document.getElementById('cancelBtn').onclick = () => {
+                        modal.remove();
+                        resolve(false);
+                    };
+
+                    modal.onclick = (e) => {
+                        if (e.target === modal) {
+                            modal.remove();
+                            resolve(false);
+                        }
+                    };
+                });
+            }
+
+            // Number animation
+            function animateNumbers() {
+                const numbers = document.querySelectorAll('.stats-number');
+                numbers.forEach(number => {
+                    const target = parseInt(number.textContent);
+                    let current = 0;
+                    const increment = target / 50;
+                    const timer = setInterval(() => {
+                        current += increment;
+                        if (current >= target) {
+                            current = target;
+                            clearInterval(timer);
+                        }
+                        number.textContent = Math.floor(current);
+                    }, 20);
+                });
+            }
+
+            // Initialize everything when DOM is loaded
+            document.addEventListener('DOMContentLoaded', function () {
+                loadRecentActivities();
+
+                // Add some delay for animation
+                setTimeout(animateNumbers, 500);
+
+                // Add fade-in animation to elements
+                const elements = document.querySelectorAll('.fade-in, .slide-up');
+                elements.forEach((el, index) => {
+                    el.style.animationDelay = `${index * 0.1}s`;
+                });
+            });
+
+            // Handle window resize for responsive design
+            window.addEventListener('resize', function () {
+                if (window.innerWidth > 1024) {
+                    document.getElementById('sidebar').classList.remove('mobile-open');
+                }
+            });
+
+            // Add CSS for new animations
+            const style = document.createElement('style');
+            style.textContent = `
+            @keyframes slideOutRight {
+                from {
+                    transform: translateX(0);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateX(100%);
+                    opacity: 0;
+                }
+            }
+        `;
+            document.head.appendChild(style);
+        </script>
+
+        <!-- Include shared scripts -->
+        <%- include('../partials/scripts') %>
+</body>
+
+</html>

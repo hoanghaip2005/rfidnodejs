@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= title %>
+    </title>
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <script src="/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        .img-logo {
+            position: absolute;
+            padding-top: 160px;
+        }
+
+        .login-container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+            text-align: center;
+            padding: 2rem 1rem 1rem;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 2rem;
+            color: #4CAF50;
+        }
+
+        .form-control {
+            border-radius: 10px;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: #4CAF50;
+            box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25);
+        }
+
+        .btn-login {
+            width: 300px;
+            height: 50px;
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            line-height: 50px;
+            border-radius: 20px;
+            cursor: pointer;
+            border: none;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            margin-top: 50%;
+        }
+
+        .btn-login:hover {
+            background-color: #45a049;
+        }
+
+        .btn-text {
+            transition: opacity 0.3s ease;
+        }
+
+        .login-container {
+            transition: transform 0.5s ease-in-out;
+        }
+
+        .login-container.shifted {
+            transform: translateY(-50px);
+        }
+
+        .input-user,
+        .input-password {
+            margin-top: 20px;
+            width: 300px;
+            opacity: 0;
+            transform: translateY(-20px);
+            transition: all 0.5s ease-in-out;
+            visibility: hidden;
+        }
+
+        .input-user.show,
+        .input-password.show {
+            opacity: 1;
+            transform: translateY(0);
+            visibility: visible;
+        }
+
+        .input-user input,
+        .input-password input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+        }
+
+        .demo-accounts {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1rem;
+            margin-top: 1rem;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .loader {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ffffff;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            position: absolute;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="d-flex flex-column align-items-center relative" style="height: 100vh;">
+
+        <div class="text-center img-logo">
+            <img src="/assets/logo.png" alt="Logo" width="300" height="auto">
+        </div>
+        <div class="text-center align-items-center d-flex flex-column flex-grow-1 justify-content-center">
+            <div class="login-container">
+                <div id="alertContainer" class="mb-3"></div>
+
+                <button type="button" class="btn btn-success btn-login" id="submitButton">
+                    <span class="btn-text">Login</span>
+                    <div class="loader"></div>
+                </button>
+
+                <div class="input-user" id="inputUser">
+                    <input type="text" class="form-control" id="username" name="username"
+                        placeholder="Nhập tên đăng nhập hoặc email" required>
+                </div>
+                <div class="input-password" id="inputPassword">
+                    <input type="password" class="form-control" id="password" name="password"
+                        placeholder="Nhập mật khẩu" required>
+                </div>
+                <div class="form-check mt-3" id="rememberContainer" style="display:none; width:300px;">
+                    <input class="form-check-input" type="checkbox" value="1" id="rememberMe">
+                    <label class="form-check-label" for="rememberMe">
+                        Ghi nhớ đăng nhập trên thiết bị này
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // If already authenticated, redirect right away (auto-login)
+            fetch('/auth/check', { credentials: 'same-origin' })
+                .then(r => r.ok ? r.json() : { success: false })
+                .then(data => {
+                    if (data && data.success && data.authenticated) {
+                        showMessage('Đã đăng nhập, đang chuyển hướng...', 'success');
+                        setTimeout(() => window.location.href = data.redirectUrl || '/', 800);
+                    }
+                })
+                .catch(() => { /* ignore */ });
+
+            const loginBtn = document.getElementById('submitButton');
+            const loginContainer = document.querySelector('.login-container');
+            const inputUser = document.getElementById('inputUser');
+            const inputPassword = document.getElementById('inputPassword');
+            const rememberContainer = document.getElementById('rememberContainer');
+            const rememberMe = document.getElementById('rememberMe');
+
+            let formVisible = false;
+
+            loginBtn.addEventListener('click', function () {
+                if (!formVisible) {
+                    // Hiển thị form lần đầu
+                    showLoginForm();
+                } else {
+                    // Xử lý đăng nhập
+                    handleLogin();
+                }
+            });
+
+            // Thêm event listener cho Enter key
+            document.addEventListener('keypress', function (e) {
+                if (e.key === 'Enter' && formVisible) {
+                    handleLogin();
+                }
+            });
+
+            function showLoginForm() {
+                // Thêm class để tạo animation đẩy xuống
+                loginContainer.classList.add('shifted');
+
+                // Hiển thị form input với delay để tạo hiệu ứng mượt
+                setTimeout(function () {
+                    inputUser.classList.add('show');
+                }, 200);
+
+                setTimeout(function () {
+                    inputPassword.classList.add('show');
+                }, 400);
+
+                // Hiển thị "Ghi nhớ đăng nhập"
+                setTimeout(function () {
+                    rememberContainer.style.display = 'block';
+                }, 600);
+
+                // Thay đổi text của button và enable form submission
+                setTimeout(function () {
+                    loginBtn.querySelector('.btn-text').textContent = 'Sign In';
+                    loginBtn.style.backgroundColor = '#007bff';
+                    formVisible = true;
+                    // Focus vào username field
+                    document.getElementById('username').focus();
+                }, 800);
+            }
+
+            function handleLogin() {
+                const username = document.getElementById('username').value.trim();
+                const password = document.getElementById('password').value.trim();
+                const remember = !!(rememberMe && rememberMe.checked);
+
+                // Validate input
+                if (!username || !password) {
+                    showMessage('Vui lòng nhập đầy đủ tên đăng nhập và mật khẩu', 'error');
+                    return;
+                }
+
+                // Disable button and show loading
+                const btnText = loginBtn.querySelector('.btn-text');
+                const loader = loginBtn.querySelector('.loader');
+
+                btnText.style.opacity = '0';
+                loader.style.display = 'block';
+                loginBtn.style.pointerEvents = 'none';
+                loginBtn.style.backgroundColor = '#6c757d';
+                loginBtn.disabled = true;
+
+                // Send login request
+                fetch('/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password,
+                        remember_me: remember
+                    })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showMessage('Đăng nhập thành công! Đang chuyển hướng...', 'success');
+                            // Redirect after a short delay
+                            setTimeout(() => {
+                                window.location.href = data.redirectUrl || '/';
+                            }, 1500);
+                        } else {
+                            showMessage(data.message || 'Đăng nhập thất bại', 'error');
+                            resetLoginButton();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Login error:', error);
+                        showMessage('Đã xảy ra lỗi kết nối. Vui lòng thử lại sau.', 'error');
+                        resetLoginButton();
+                    });
+            }
+
+            function resetLoginButton() {
+                const btnText = loginBtn.querySelector('.btn-text');
+                const loader = loginBtn.querySelector('.loader');
+
+                btnText.textContent = 'Sign In';
+                btnText.style.opacity = '1';
+                loader.style.display = 'none';
+                loginBtn.style.pointerEvents = 'auto';
+                loginBtn.style.backgroundColor = '#007bff';
+                loginBtn.disabled = false;
+            }
+
+            function showMessage(message, type) {
+                // Remove existing message
+                const existingMessage = document.querySelector('.login-message');
+                if (existingMessage) {
+                    existingMessage.remove();
+                }
+
+                // Create message element
+                const messageElement = document.createElement('div');
+                messageElement.className = `login-message alert ${type === 'success' ? 'alert-success' : 'alert-danger'}`;
+                messageElement.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    z-index: 1000;
+                    min-width: 300px;
+                    text-align: center;
+                    border-radius: 20px;
+                    animation: slideDown 0.3s ease-out;
+                `;
+                messageElement.innerHTML = `
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+                    ${message}
+                `;
+
+                // Add animation styles if not already added
+                if (!document.querySelector('#slideDownStyle')) {
+                    const style = document.createElement('style');
+                    style.id = 'slideDownStyle';
+                    style.textContent = `
+                        @keyframes slideDown {
+                            from {
+                                opacity: 0;
+                                transform: translateX(-50%) translateY(-20px);
+                            }
+                            to {
+                                opacity: 1;
+                                transform: translateX(-50%) translateY(0);
+                            }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+
+                document.body.appendChild(messageElement);
+
+                // Auto remove after 3 seconds
+                setTimeout(() => {
+                    if (messageElement.parentNode) {
+                        messageElement.remove();
+                    }
+                }, 3000);
+            }
+
+            // Handle URL parameters for error messages
+            const urlParams = new URLSearchParams(window.location.search);
+            const errorMsg = urlParams.get('error');
+            if (errorMsg) {
+                showMessage(decodeURIComponent(errorMsg), 'error');
+                showLoginForm(); // Show form if there's an error
+            }
+        });
+    </script>
+</body>
+
+</html>

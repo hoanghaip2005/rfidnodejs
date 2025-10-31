@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= title %>
+    </title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Include shared styles -->
+    <%- include('../partials/styles') %>
+
+        <style>
+            /* Page-specific styles for staff dashboard */
+            .navbar-custom {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            }
+
+            .main-content {
+                min-height: 100vh;
+                background: #f8f9fa;
+                padding-top: 20px;
+            }
+
+            .button-in-work {
+                width: 300px;
+                height: 50px;
+                background-color: #28a745;
+                color: white;
+                text-align: center;
+                line-height: 50px;
+                border-radius: 20px;
+                cursor: pointer;
+                margin-bottom: 20px;
+            }
+
+            .button-in-work:hover {
+                background-color: #1e7e34;
+            }
+
+            .button-out-work {
+                width: 300px;
+                height: 50px;
+                background-color: #dc3545;
+                color: white;
+                text-align: center;
+                line-height: 50px;
+                border-radius: 20px;
+                cursor: pointer;
+                margin-bottom: 20px;
+            }
+
+            .button-out-work:hover {
+                background-color: #c82333;
+            }
+
+            .button-available {
+                width: 300px;
+                height: 50px;
+                background-color: #007bff;
+                color: white;
+                text-align: center;
+                line-height: 50px;
+                border-radius: 20px;
+                cursor: pointer;
+            }
+
+            .button-available:hover {
+                background-color: #0056b3;
+            }
+
+            .button-events {
+                width: 300px;
+                height: 50px;
+                background-color: #6f42c1;
+                color: white;
+                text-align: center;
+                line-height: 50px;
+                border-radius: 20px;
+                cursor: pointer;
+                margin-top: 20px;
+            }
+
+            .button-events:hover {
+                background-color: #5a32a3;
+            }
+
+            .attendance-card {
+                background: white;
+                border-radius: 15px;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                padding: 30px;
+                text-align: center;
+                margin-bottom: 30px;
+            }
+
+            .rfid-input {
+                background: #f8f9fa;
+                border: 2px dashed #dee2e6;
+                border-radius: 10px;
+                padding: 40px 20px;
+                text-align: center;
+                margin-bottom: 20px;
+            }
+
+            .status-card {
+                background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+                color: white;
+                border-radius: 10px;
+                padding: 20px;
+                margin-bottom: 20px;
+            }
+
+            .history-item {
+                background: white;
+                border-radius: 8px;
+                padding: 15px;
+                margin-bottom: 10px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            }
+
+            .check-in {
+                border-left: 4px solid #28a745;
+            }
+
+            .check-out {
+                border-left: 4px solid #dc3545;
+            }
+
+            .pulse {
+                animation: pulse 2s infinite;
+            }
+
+            @keyframes pulse {
+                0% {
+                    transform: scale(1);
+                }
+
+                50% {
+                    transform: scale(1.05);
+                }
+
+                100% {
+                    transform: scale(1);
+                }
+            }
+        </style>
+</head>
+
+<body>
+    <!-- Mobile Menu Toggle -->
+    <button class="btn btn-light position-fixed" id="mobileMenuToggle"
+        style="top: 1rem; left: 1rem; z-index: 1100; display: none;">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Include shared sidebar -->
+    <%- include('../partials/sidebar') %>
+
+        <!-- Main Content -->
+        <div class="main-content">
+
+            <div class="d-flex flex-column align-items-center justify-content-center"
+                style="height: 80vh; padding: 30px 0">
+                <div class="d-flex flex-column align-items-center">
+
+                    <a class="button-in-work" href="/staff/checkinwork" style="text-decoration: none;">
+                        Check In Work
+                    </a>
+                    <a class="button-out-work" href="/staff/checkoutwork" style="text-decoration: none;">
+                        Check Out Work
+                    </a>
+                </div>
+            </div>
+            <div class="d-flex align-items-center justify-content-center">
+                <a class="button-available" href="/staff/available" style="text-decoration: none;">
+                    Available
+                </a>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+        <script>
+            // Initialize Socket.IO
+            const socket = io();
+
+            let selectedEventId = null;
+
+            // Socket event handlers
+            socket.on('rfid_status', function (data) {
+                const statusElement = document.getElementById('rfidStatus');
+                if (data.connected) {
+                    statusElement.textContent = 'Kết nối';
+                    statusElement.className = 'badge bg-success';
+                } else {
+                    statusElement.textContent = 'Ngắt kết nối';
+                    statusElement.className = 'badge bg-danger';
+                }
+            });
+
+            socket.on('rfid_scan', function (data) {
+                processRfidScan(data.cardId);
+            });
+
+            socket.on('attendance_update', function (data) {
+                if (data.user.id === '<%= user.id %>') {
+                    showResultMessage(data.action, data.action === 'check_in' ? 'success' : 'info');
+                }
+            });
+            // Select event for attendance
+            function selectEvent(eventId) {
+                selectedEventId = eventId;
+            }
+
+            // Process manual RFID input
+            function processManualRfid() {
+                const input = document.getElementById('manualRfidInput');
+                const cardId = input.value.trim();
+
+                if (!cardId) {
+                    alert('Vui lòng nhập ID thẻ RFID');
+                    return;
+                }
+
+                processRfidScan(cardId);
+                input.value = '';
+            }
+
+            // Process RFID scan
+            async function processRfidScan(cardId) {
+                showProcessing(true);
+
+                try {
+                    const requestBody = { rfid_card: cardId };
+                    if (selectedEventId) {
+                        requestBody.event_id = selectedEventId;
+                    }
+
+                    const response = await fetch('/staff/checkinwork', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(requestBody)
+                    });
+
+                    const data = await response.json();
+
+                    if (data.success) {
+                        showResultMessage(data.data.action, 'success');
+                    } else {
+                        showResultMessage(data.message, 'danger');
+                    }
+                } catch (error) {
+                    console.error('RFID scan error:', error);
+                    showResultMessage('Đã xảy ra lỗi kết nối. Vui lòng thử lại.', 'danger');
+                } finally {
+                    showProcessing(false);
+                }
+            }
+
+            // Show processing state
+            function showProcessing(show) {
+                document.getElementById('rfidPrompt').style.display = show ? 'none' : 'block';
+                document.getElementById('rfidProcessing').style.display = show ? 'block' : 'none';
+            }
+
+            // Show result message
+            function showResultMessage(action, type) {
+                const messages = {
+                    'check_in': 'Chấm công vào thành công!',
+                    'check_out': 'Chấm công ra thành công!'
+                };
+
+                const message = messages[action] || action;
+                const alertClass = type === 'success' ? 'alert-success' : type === 'danger' ? 'alert-danger' : 'alert-info';
+
+                const resultDiv = document.getElementById('resultMessage');
+                resultDiv.innerHTML = `
+                <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle me-2"></i>
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            `;
+
+                // Auto dismiss after 5 seconds
+                setTimeout(() => {
+                    const alert = resultDiv.querySelector('.alert');
+                    if (alert) {
+                        const bsAlert = new bootstrap.Alert(alert);
+                        bsAlert.close();
+                    }
+                }, 5000);
+            }
+
+            // Helper functions
+            function getStatusBadgeClass(status) {
+                switch (status) {
+                    case 'checked_in': return 'bg-success';
+                    case 'checked_out': return 'bg-secondary';
+                    default: return 'bg-warning';
+                }
+            }
+
+            function getStatusText(status) {
+                switch (status) {
+                    case 'checked_in': return 'Đã vào';
+                    case 'checked_out': return 'Đã ra';
+                    default: return 'Chưa vào';
+                }
+            }
+
+            // Logout function
+            async function logout() {
+                if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+                    try {
+                        const response = await fetch('/auth/logout', { method: 'POST' });
+                        const data = await response.json();
+                        if (data.success) {
+                            window.location.href = data.redirectUrl || '/auth/login';
+                        }
+                    } catch (error) {
+                        console.error('Logout error:', error);
+                        alert('Đã xảy ra lỗi khi đăng xuất');
+                    }
+                }
+            }
+
+            // Change password function
+            function changePassword() {
+                // TODO: Implement change password modal
+                alert('Chức năng đổi mật khẩu sẽ được cập nhật sớm');
+            }
+
+            // Initialize page
+            document.addEventListener('DOMContentLoaded', function () {
+                document.getElementById('manualRfidInput').addEventListener('keypress', function (e) {
+                    if (e.key === 'Enter') {
+                        processManualRfid();
+                    }
+                });
+            });
+        </script>
+
+        <!-- Include shared scripts -->
+        <%- include('../partials/scripts') %>
+</body>
+
+</html>

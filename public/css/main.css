@@ -1,0 +1,533 @@
+/* Main styles for RFID Attendance System - Node.js Version */
+
+:root {
+    --primary-color: #0d6efd;
+    --secondary-color: #6c757d;
+    --success-color: #198754;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --info-color: #0dcaf0;
+    --light-color: #f8f9fa;
+    --dark-color: #212529;
+    --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --border-radius: 0.375rem;
+    --box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    --transition: all 0.3s ease-in-out;
+}
+
+/* Global styles */
+body {
+    font-family: var(--font-family);
+    background-color: #f8f9fa;
+    color: var(--dark-color);
+    line-height: 1.6;
+}
+
+/* Layout components */
+.sidebar {
+    background: linear-gradient(135deg, var(--primary-color), #0056b3);
+    color: white;
+    min-height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 250px;
+    z-index: 1000;
+    transition: var(--transition);
+    box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-brand {
+    padding: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+}
+
+.sidebar-brand h4 {
+    margin: 0;
+    font-weight: 600;
+}
+
+.sidebar-nav {
+    padding: 1rem 0;
+}
+
+.sidebar-nav .nav-link {
+    color: rgba(255, 255, 255, 0.9);
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 0;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+}
+
+.sidebar-nav .nav-link:hover,
+.sidebar-nav .nav-link.active {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.sidebar-nav .nav-link i {
+    margin-right: 0.75rem;
+    width: 16px;
+    text-align: center;
+}
+
+.main-content {
+    margin-left: 250px;
+    padding: 2rem;
+    transition: var(--transition);
+}
+
+/* Header styles */
+.header {
+    background: white;
+    padding: 1rem 2rem;
+    margin: -2rem -2rem 2rem -2rem;
+    border-bottom: 1px solid #dee2e6;
+    box-shadow: var(--box-shadow);
+}
+
+.header-title {
+    margin: 0;
+    color: var(--dark-color);
+    font-weight: 600;
+}
+
+.header-subtitle {
+    margin: 0;
+    color: var(--secondary-color);
+    font-size: 0.9rem;
+}
+
+/* Status indicators */
+.status-indicator {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+    animation: pulse 2s infinite;
+}
+
+.status-online {
+    background-color: var(--success-color);
+}
+
+.status-offline {
+    background-color: var(--danger-color);
+}
+
+.status-warning {
+    background-color: var(--warning-color);
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+/* Card enhancements */
+.card {
+    border: none;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    transition: var(--transition);
+}
+
+.card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+    background-color: var(--light-color);
+    border-bottom: 1px solid #dee2e6;
+    font-weight: 600;
+}
+
+/* Stat cards */
+.stat-card {
+    text-align: center;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, var(--primary-color), #0056b3);
+    color: white;
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.stat-icon {
+    font-size: 3rem;
+    opacity: 0.3;
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+}
+
+/* Activity feed */
+.activity-item {
+    padding: 1rem;
+    border-left: 3px solid var(--primary-color);
+    background-color: white;
+    margin-bottom: 0.5rem;
+    border-radius: 0 var(--border-radius) var(--border-radius) 0;
+    transition: var(--transition);
+}
+
+.activity-item:hover {
+    background-color: var(--light-color);
+}
+
+.activity-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+}
+
+.activity-title {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.activity-description {
+    color: var(--secondary-color);
+    font-size: 0.9rem;
+}
+
+/* History items */
+.history-item {
+    background-color: white;
+    transition: var(--transition);
+}
+
+.history-item:hover {
+    background-color: var(--light-color);
+}
+
+/* RFID input area */
+.rfid-input-area {
+    background: linear-gradient(135deg, var(--success-color), #146c43);
+    color: white;
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.rfid-input {
+    font-size: 1.2rem;
+    padding: 0.75rem;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: var(--border-radius);
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    text-align: center;
+    transition: var(--transition);
+}
+
+.rfid-input:focus {
+    border-color: white;
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.25);
+}
+
+.rfid-input::placeholder {
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Login page styles */
+.login-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, var(--primary-color), #0056b3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-card {
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+    overflow: hidden;
+    max-width: 400px;
+    width: 100%;
+}
+
+.login-header {
+    background: linear-gradient(135deg, var(--primary-color), #0056b3);
+    color: white;
+    padding: 2rem;
+    text-align: center;
+}
+
+.login-header h3 {
+    margin: 0;
+    font-weight: 600;
+}
+
+.login-body {
+    padding: 2rem;
+}
+
+.login-form .form-control {
+    border-radius: var(--border-radius);
+    border: 2px solid #e9ecef;
+    padding: 0.75rem 1rem;
+    transition: var(--transition);
+}
+
+.login-form .form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.login-btn {
+    width: 100%;
+    padding: 0.75rem;
+    font-weight: 600;
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+}
+
+/* Form enhancements */
+.form-control,
+.form-select {
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Button enhancements */
+.btn {
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+    font-weight: 500;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+/* Progress bars */
+.progress {
+    height: 0.5rem;
+    border-radius: var(--border-radius);
+    background-color: #e9ecef;
+}
+
+.progress-bar {
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+}
+
+/* Alerts and messages */
+.alert {
+    border: none;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+}
+
+/* Tables */
+.table {
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--box-shadow);
+}
+
+.table th {
+    background-color: var(--light-color);
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+}
+
+/* Modal enhancements */
+.modal-content {
+    border: none;
+    border-radius: var(--border-radius);
+    box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.175);
+}
+
+.modal-header {
+    background-color: var(--light-color);
+    border-bottom: 1px solid #dee2e6;
+}
+
+/* Loading states */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        position: relative;
+        min-height: auto;
+    }
+
+    .main-content {
+        margin-left: 0;
+        padding: 1rem;
+    }
+
+    .header {
+        margin: -1rem -1rem 1rem -1rem;
+        padding: 1rem;
+    }
+
+    .stat-card {
+        margin-bottom: 1rem;
+    }
+
+    .activity-item {
+        padding: 0.75rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .login-card {
+        margin: 1rem;
+    }
+
+    .login-header,
+    .login-body {
+        padding: 1.5rem;
+    }
+
+    .rfid-input-area {
+        padding: 1.5rem;
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+    }
+}
+
+/* Utility classes */
+.text-gradient {
+    background: linear-gradient(135deg, var(--primary-color), #0056b3);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.shadow-sm {
+    box-shadow: var(--box-shadow) !important;
+}
+
+.rounded-lg {
+    border-radius: 0.5rem !important;
+}
+
+.border-start-primary {
+    border-left: 3px solid var(--primary-color) !important;
+}
+
+.border-start-success {
+    border-left: 3px solid var(--success-color) !important;
+}
+
+.border-start-warning {
+    border-left: 3px solid var(--warning-color) !important;
+}
+
+.border-start-danger {
+    border-left: 3px solid var(--danger-color) !important;
+}
+
+/* Animation classes */
+.fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.slide-in {
+    animation: slideIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Print styles */
+@media print {
+
+    .sidebar,
+    .btn,
+    .header {
+        display: none !important;
+    }
+
+    .main-content {
+        margin-left: 0 !important;
+        padding: 0 !important;
+    }
+
+    .card {
+        border: 1px solid #000 !important;
+        box-shadow: none !important;
+    }
+}

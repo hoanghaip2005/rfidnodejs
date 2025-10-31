@@ -1,0 +1,22 @@
+# Ignore EJS template files
+*.ejs
+src/views/**/*.ejs
+
+# Ignore compiled files
+dist/
+build/
+
+# Ignore node_modules
+node_modules/
+
+# Ignore logs
+logs/
+*.log
+
+# Ignore test coverage
+coverage/
+
+# Ignore environment files
+.env
+.env.local
+.env.production

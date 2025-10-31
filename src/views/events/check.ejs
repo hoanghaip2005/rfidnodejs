@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Check - Event Manager</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+
+    <!-- Include shared styles -->
+    <%- include('../partials/styles') %>
+
+        <style>
+            .header {
+                background: linear-gradient(135deg, #28a745, #20c997);
+                color: white;
+                padding: 20px 0;
+                text-align: center;
+                font-size: 24px;
+                font-weight: bold;
+                margin-bottom: 30px;
+            }
+
+            .check-container {
+                background: white;
+                border-radius: 15px;
+                box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+                padding: 40px;
+                margin: 20px auto;
+                max-width: 600px;
+                text-align: center;
+            }
+
+            .check-title {
+                color: #28a745;
+                font-size: 28px;
+                font-weight: bold;
+                margin-bottom: 30px;
+            }
+
+            .check-icon {
+                font-size: 80px;
+                color: #28a745;
+                margin-bottom: 20px;
+            }
+
+            .instruction {
+                color: #6c757d;
+                font-size: 16px;
+                margin-bottom: 30px;
+                line-height: 1.6;
+            }
+
+            .input-group {
+                margin-bottom: 20px;
+                text-align: left;
+            }
+
+            .input-group label {
+                display: block;
+                margin-bottom: 8px;
+                color: #495057;
+                font-weight: 500;
+            }
+
+            .input-group input,
+            .input-group select {
+                width: 100%;
+                padding: 12px 15px;
+                border: 2px solid #e9ecef;
+                border-radius: 8px;
+                font-size: 16px;
+                transition: border-color 0.3s;
+            }
+
+            .input-group input:focus,
+            .input-group select:focus {
+                outline: none;
+                border-color: #28a745;
+                box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+            }
+
+            .method-buttons {
+                display: flex;
+                gap: 10px;
+                margin-bottom: 30px;
+            }
+
+            .method-btn {
+                flex: 1;
+                padding: 15px;
+                border: none;
+                border-radius: 10px;
+                font-size: 16px;
+                font-weight: bold;
+                cursor: pointer;
+                transition: all 0.3s;
+            }
+
+            .method-btn.active {
+                background: #28a745;
+                color: white;
+            }
+
+            .method-btn:not(.active) {
+                background: #f8f9fa;
+                color: #6c757d;
+                border: 2px solid #e9ecef;
+            }
+
+            .method-btn:not(.active):hover {
+                background: #e9ecef;
+            }
+
+            .submit-btn {
+                width: 100%;
+                padding: 15px;
+                background: linear-gradient(135deg, #28a745, #20c997);
+                color: white;
+                border: none;
+                border-radius: 10px;
+                font-size: 18px;
+                font-weight: bold;
+                cursor: pointer;
+                transition: all 0.3s;
+                margin-bottom: 15px;
+            }
+
+            .submit-btn:hover {
+                background: linear-gradient(135deg, #20c997, #17a2b8);
+                transform: translateY(-2px);
+            }
+
+            .submit-btn:disabled {
+                background: #6c757d;
+                cursor: not-allowed;
+                transform: none;
+            }
+
+            .back-btn {
+                background: #6c757d;
+                color: white;
+                border: none;
+                padding: 12px 30px;
+                border-radius: 25px;
+                font-size: 16px;
+                cursor: pointer;
+                margin-top: 20px;
+                transition: all 0.3s;
+            }
+
+            .back-btn:hover {
+                background: #495057;
+                transform: translateY(-2px);
+            }
+
+            .qr-scanner {
+                display: none;
+                text-align: center;
+                padding: 20px;
+            }
+
+            .camera-container {
+                position: relative;
+                width: 100%;
+                max-width: 400px;
+                margin: 0 auto;
+            }
+
+            #qrVideo {
+                max-width: 100%;
+                border-radius: 10px;
+                border: 2px solid #28a745;
+            }
+
+            #qrCanvas {
+                display: none;
+            }
+
+            .scanner-status {
+                margin-top: 10px;
+                font-style: italic;
+                color: #6c757d;
+            }
+
+            .result-message {
+                margin-top: 20px;
+                padding: 15px;
+                border-radius: 8px;
+                font-weight: bold;
+            }
+
+            .result-message.success {
+                background: #d4edda;
+                color: #155724;
+                border: 1px solid #c3e6cb;
+            }
+
+            .result-message.error {
+                background: #f8d7da;
+                color: #721c24;
+                border: 1px solid #f5c6cb;
+            }
+
+            body {
+                background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+                min-height: 100vh;
+            }
+
+            .checkpoint-badge {
+                display: inline-block;
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-size: 12px;
+                font-weight: bold;
+                margin-left: 8px;
+            }
+
+            .checkpoint-badge.in {
+                background: #d4edda;
+                color: #155724;
+            }
+
+            .checkpoint-badge.out {
+                background: #f8d7da;
+                color: #721c24;
+            }
+
+            .rfid-input-hidden {
+                position: absolute;
+                left: -9999px;
+                opacity: 0;
+            }
+
+            .rfid-status {
+                color: #28a745;
+                font-weight: bold;
+                margin-bottom: 10px;
+            }
+
+            .search-results {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                right: 0;
+                background: white;
+                border: 1px solid #ddd;
+                border-top: none;
+                border-radius: 0 0 8px 8px;
+                max-height: 200px;
+                overflow-y: auto;
+                z-index: 1000;
+                display: none;
+            }
+
+            .employee-search-item {
+                padding: 12px 15px;
+                cursor: pointer;
+                border-bottom: 1px solid #f0f0f0;
+                transition: background-color 0.2s;
+            }
+
+            .employee-search-item:hover {
+                background-color: #f8f9fa;
+            }
+
+            .employee-search-item.highlighted {
+                background-color: #e3f2fd;
+            }
+
+            .employee-search-item:last-child {
+                border-bottom: none;
+            }
+
+            .employee-search-item .employee-id {
+                font-weight: bold;
+                color: #007bff;
+            }
+
+            .employee-search-item .employee-name {
+                color: #333;
+                margin-left: 10px;
+            }
+
+            .employee-search-item .employee-phone {
+                color: #666;
+                font-size: 0.9em;
+                margin-left: 10px;
+            }
+
+            .main-content {
+                min-height: 100vh;
+                padding-top: 0;
+            }
+        </style>
+</head>
+
+<body>
+    <!-- Mobile Menu Toggle -->
+    <button class="btn btn-light position-fixed" id="mobileMenuToggle"
+        style="top: 1rem; left: 1rem; z-index: 1100; display: none;">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Include shared sidebar -->
+    <%- include('../partials/sidebar') %>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <header class="header">
+                <div class="container">
+                    <i class="fas fa-qrcode me-2"></i>Event Check
+                </div>
+            </header>
+
+            <div class="container">
+                <div class="check-container">
+                    <div class="check-icon">
+                        <i class="fas fa-qrcode"></i>
+                    </div>
+                    <h2 class="check-title">Event Check In/Out</h2>
+                    <p class="instruction">
+                        Chọn sự kiện, checkpoint và phương thức để thực hiện check-in hoặc check-out
+                    </p>
+
+                    <!-- Event Selection -->
+                    <div class="input-group">
+                        <label for="eventSelect">Chọn Sự Kiện:</label>
+                        <select id="eventSelect" class="form-select">
+                            <option value="">-- Chọn sự kiện --</option>
+                        </select>
+                    </div>
+
+                    <!-- Checkpoint Selection -->
+                    <div class="input-group">
+                        <label for="checkpointSelect">Chọn Checkpoint:</label>
+                        <select id="checkpointSelect" class="form-select">
+                            <option value="">-- Chọn checkpoint --</option>
+                        </select>
+                    </div>
+
+                    <!-- Method Selection -->
+                    <div class="method-buttons">
+                        <button class="method-btn active" data-method="rfid">
+                            <i class="fas fa-id-card me-2"></i>RFID
+                        </button>
+                        <button class="method-btn" data-method="qr">
+                            <i class="fas fa-qrcode me-2"></i>QR Code
+                        </button>
+                        <button class="method-btn" data-method="manual">
+                            <i class="fas fa-keyboard me-2"></i>Manual
+                        </button>
+                    </div>
+
+                    <!-- RFID Input -->
+                    <div id="rfid-input" class="input-section">
+                        <input type="text" id="rfidInput" class="rfid-input-hidden" placeholder="Tap RFID card..."
+                            autocomplete="off">
+                        <div class="input-group">
+                            <label for="cardId">Card ID:</label>
+                            <input type="text" id="cardId" placeholder="Card ID sẽ hiển thị tự động khi quẹt thẻ"
+                                readonly>
+                        </div>
+                        <div id="rfid-status" class="rfid-status">
+                            <i class="fas fa-id-card me-2"></i>Sẵn sàng đọc thẻ RFID...
+                        </div>
+                    </div>
+
+                    <!-- QR Scanner -->
+                    <div id="qr-scanner" class="input-section qr-scanner">
+                        <div class="camera-container">
+                            <video id="qrVideo" autoplay></video>
+                            <canvas id="qrCanvas"></canvas>
+                        </div>
+                        <div class="scanner-status">Sẵn sàng quét QR code...</div>
+                        <div class="input-group" style="margin-top: 15px;">
+                            <label for="qrResult">QR Result:</label>
+                            <input type="text" id="qrResult" placeholder="QR data sẽ hiển thị ở đây" readonly>
+                        </div>
+                    </div>
+
+                    <!-- Manual Input -->
+                    <div id="manual-input" class="input-section" style="display: none;">
+                        <div class="input-group" style="position: relative;">
+                            <label for="customerId">Customer ID:</label>
+                            <input type="text" id="customerId" placeholder="Nhập Customer ID" autocomplete="off">
+                            <div id="customerSearchResults" class="search-results"></div>
+                        </div>
+                        <div class="input-group">
+                            <label for="customerName">Customer Name:</label>
+                            <input type="text" id="customerName" placeholder="Nhập tên khách hàng">
+                        </div>
+                        <div class="input-group">
+                            <label for="customerPhone">Phone Number:</label>
+                            <input type="text" id="customerPhone" placeholder="Nhập số điện thoại">
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button class="submit-btn" onclick="submitCheck()" disabled>
+                        <i class="fas fa-check me-2"></i>Submit Check
+                    </button>
+
+                    <!-- Result Message -->
+                    <div id="resultMessage" class="result-message" style="display: none;"></div>
+
+                    <!-- Back Button -->
+                    <div class="text-center mt-4">
+                        <a href="/event" class="back-btn" style="text-decoration: none;">
+                            <i class="fas fa-arrow-left me-2"></i>Quay Về Event Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                let currentMethod = 'rfid';
+                let videoStream = null;
+                let qrScanning = false;
+
+                document.addEventListener('DOMContentLoaded', function () {
+                    // Load events
+                    loadEvents();
+
+                    // Method selection
+                    document.querySelectorAll('.method-btn').forEach(btn => {
+                        btn.addEventListener('click', function () {
+                            selectMethod(this.dataset.method);
+                        });
+                    });
+
+                    // Auto-focus card input
+                    document.getElementById('cardId').focus();
+
+                    // RFID auto-capture setup
+                    setupRFIDAutoCapture();
+
+                    // Setup employee search autocomplete
+                    setupEmployeeSearch();
+
+                    // Enable submit button when checkpoint is selected
+                    document.getElementById('checkpointSelect').addEventListener('change', function () {
+                        updateSubmitButton();
+                    });
+
+                    // Load checkpoints when event is selected
+                    document.getElementById('eventSelect').addEventListener('change', function () {
+                        const eventName = this.value;
+                        console.log('Event select changed to:', eventName);
+                        loadCheckpoints(eventName);
+                    });
+                });
+
+                function setupRFIDAutoCapture() {
+                    const rfidInput = document.getElementById('rfidInput');
+                    const cardIdInput = document.getElementById('cardId');
+                    const rfidStatus = document.getElementById('rfid-status');
+
+                    // Focus the hidden RFID input to capture scanned data
+                    rfidInput.focus();
+
+                    // Handle RFID input
+                    rfidInput.addEventListener('input', function (e) {
+                        const value = e.target.value.trim();
+                        if (value.length > 0) {
+                            cardIdInput.value = value;
+                            rfidStatus.innerHTML = '<i class="fas fa-check-circle me-2"></i>Đã đọc thẻ: ' + value;
+                            rfidStatus.style.color = '#28a745';
+
+                            // Auto submit if checkpoint is selected
+                            if (document.getElementById('checkpointSelect').value) {
+                                setTimeout(() => {
+                                    submitCheck();
+                                }, 500);
+                            }
+
+                            // Clear the hidden input for next scan
+                            setTimeout(() => {
+                                e.target.value = '';
+                            }, 100);
+                        }
+                    });
+
+                    // Refocus hidden input when clicking on the page (but not on form elements)
+                    document.addEventListener('click', function (e) {
+                        if (currentMethod === 'rfid' && !e.target.matches('input, select, button, textarea')) {
+                            rfidInput.focus();
+                        }
+                    });
+                }
+
+                function loadEvents() {
+                    const eventSelect = document.getElementById('eventSelect');
+
+                    // Clear existing options except the first one
+                    while (eventSelect.children.length > 1) {
+                        eventSelect.removeChild(eventSelect.lastChild);
+                    }
+
+                    // Load events from API with authentication
+                    fetch('/api/event-manager/events', {
+                        method: 'GET',
+                        credentials: 'include' // Include cookies for authentication
+                    })
+                        .then(response => {
+                            console.log('Events API response status:', response.status);
+                            if (!response.ok) {
+                                if (response.status === 401) {
+                                    throw new Error('Unauthorized - please login again');
+                                }
+                                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            console.log('Events API response data:', data);
+                            if (data.success && data.events) {
+                                console.log('Found events:', data.events);
+                                data.events.forEach(event => {
+                                    const option = document.createElement('option');
+                                    option.value = event.name;
+                                    option.textContent = event.name;
+                                    eventSelect.appendChild(option);
+                                });
+                            } else {
+                                console.error('Failed to load events:', data.error);
+                                const option = document.createElement('option');
+                                option.value = '';
+                                option.textContent = data.error || 'Không có sự kiện';
+                                eventSelect.appendChild(option);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error loading events:', error);
+                            const option = document.createElement('option');
+                            option.value = '';
+                            if (error.message.includes('Unauthorized')) {
+                                option.textContent = 'Vui lòng đăng nhập lại';
+                                // Optionally redirect to login
+                                setTimeout(() => {
+                                    window.location.href = '/auth/login';
+                                }, 2000);
+                            } else {
+                                option.textContent = 'Lỗi kết nối';
+                            }
+                            eventSelect.appendChild(option);
+                        });
+                }
+
+                function loadCheckpoints(eventName) {
+                    console.log('=== loadCheckpoints called ===');
+                    console.log('Event name received:', eventName);
+
+                    const checkpointSelect = document.getElementById('checkpointSelect');
+
+                    // Clear existing options
+                    checkpointSelect.innerHTML = '<option value="">-- Đang tải... --</option>';
+
+                    if (!eventName) {
+                        console.log('No event name provided, returning');
+                        checkpointSelect.innerHTML = '<option value="">-- Chọn checkpoint --</option>';
+                        updateSubmitButton();
+                        return;
+                    }
+
+                    // Load checkpoints from API with better error handling
+                    console.log('Loading checkpoints for event:', eventName);
+                    console.log('Sending request to /api/event-manager/list-checkpoints');
+
+                    fetch('/api/event-manager/list-checkpoints', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ event_name: eventName }),
+                        credentials: 'include' // Include cookies for authentication
+                    })
+                        .then(response => {
+                            console.log('Checkpoint API response status:', response.status);
+                            console.log('Checkpoint API response headers:', response.headers);
+                            if (!response.ok) {
+                                if (response.status === 401) {
+                                    throw new Error('Unauthorized - please login again');
+                                }
+                                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            console.log('Checkpoint API response data:', data);
+                            console.log('Data type:', typeof data);
+                            console.log('Data success:', data.success);
+                            console.log('Data columns:', data.columns);
+
+                            if (data.success && data.columns && Array.isArray(data.columns)) {
+                                console.log('Found columns count:', data.columns.length);
+                                console.log('Column details:', data.columns);
+
+                                if (data.columns.length === 0) {
+                                    checkpointSelect.innerHTML = '<option value="">-- Không có checkpoint nào --</option>';
+                                } else {
+                                    // Clear loading message
+                                    checkpointSelect.innerHTML = '<option value="">-- Chọn checkpoint --</option>';
+
+                                    data.columns.forEach((column, index) => {
+                                        console.log(`Processing column ${index}:`, column.name);
+                                        const option = document.createElement('option');
+                                        option.value = column.name;
+
+                                        // Add badge to indicate IN or OUT
+                                        let badgeClass = '';
+                                        let badgeText = '';
+                                        if (column.name.includes('_IN') || column.name === 'BUS_IN') {
+                                            badgeClass = 'in';
+                                            badgeText = 'IN';
+                                        } else if (column.name.includes('_OUT') || column.name === 'BUS_OUT') {
+                                            badgeClass = 'out';
+                                            badgeText = 'OUT';
+                                        }
+
+                                        option.textContent = column.name;
+                                        if (badgeText) {
+                                            option.textContent += ` [${badgeText}]`;
+                                        }
+
+                                        checkpointSelect.appendChild(option);
+                                    });
+                                    console.log('Checkpoints loaded successfully. Total options:', checkpointSelect.options.length);
+                                }
+                            } else {
+                                console.error('Failed to load checkpoints. Data structure invalid:', data);
+                                const errorMsg = data.error || data.message || 'Không tìm thấy checkpoint';
+                                checkpointSelect.innerHTML = `<option value="">-- ${errorMsg} --</option>`;
+                            }
+                            updateSubmitButton();
+                        })
+                        .catch(error => {
+                            console.error('Error loading checkpoints:', error);
+                            console.error('Error stack:', error.stack);
+                            let errorMsg = 'Lỗi kết nối';
+                            if (error.message.includes('Unauthorized')) {
+                                errorMsg = 'Vui lòng đăng nhập lại';
+                                // Optionally redirect to login
+                                setTimeout(() => {
+                                    window.location.href = '/auth/login';
+                                }, 2000);
+                            }
+                            checkpointSelect.innerHTML = `<option value="">-- ${errorMsg} --</option>`;
+                            updateSubmitButton();
+                        });
+                }
+
+                function selectMethod(method) {
+                    currentMethod = method;
+
+                    // Update button states
+                    document.querySelectorAll('.method-btn').forEach(btn => {
+                        btn.classList.remove('active');
+                    });
+                    document.querySelector(`[data-method="${method}"]`).classList.add('active');
+
+                    // Hide all input sections
+                    document.querySelectorAll('.input-section').forEach(section => {
+                        section.style.display = 'none';
+                    });
+
+                    // Stop video stream if active
+                    if (videoStream) {
+                        videoStream.getTracks().forEach(track => track.stop());
+                        videoStream = null;
+                        qrScanning = false;
+                    }
+
+                    // Hide video element
+                    const video = document.getElementById('qrVideo');
+                    if (video) {
+                        video.style.display = 'none';
+                    }
+
+                    // Show appropriate input section
+                    if (method === 'rfid') {
+                        document.getElementById('rfid-input').style.display = 'block';
+                        setTimeout(() => {
+                            document.getElementById('rfidInput').focus();
+                        }, 100);
+                    } else if (method === 'qr') {
+                        document.getElementById('qr-scanner').style.display = 'block';
+                        startQRScanner();
+                    } else if (method === 'manual') {
+                        document.getElementById('manual-input').style.display = 'block';
+                        document.getElementById('customerId').focus();
+                    }
+
+                    updateSubmitButton();
+                }
+
+                function startQRScanner() {
+                    const video = document.getElementById('qrVideo');
+                    const canvas = document.getElementById('qrCanvas');
+                    const statusDiv = document.querySelector('.scanner-status');
+
+                    // Show video element
+                    video.style.display = 'block';
+                    statusDiv.textContent = 'Đang khởi động camera...';
+
+                    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+                        .then(stream => {
+                            videoStream = stream;
+                            video.srcObject = stream;
+                            qrScanning = true;
+                            statusDiv.textContent = 'Quét QR code...';
+                            scanQRCode();
+                        })
+                        .catch(err => {
+                            console.error('Error accessing camera:', err);
+                            statusDiv.textContent = 'Lỗi truy cập camera: ' + err.message;
+                        });
+                }
+
+                function scanQRCode() {
+                    if (!qrScanning) return;
+
+                    const video = document.getElementById('qrVideo');
+                    const canvas = document.getElementById('qrCanvas');
+                    const context = canvas.getContext('2d');
+
+                    if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                        canvas.width = video.videoWidth;
+                        canvas.height = video.videoHeight;
+                        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                        const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+                        if (code) {
+                            document.getElementById('qrResult').value = code.data;
+                            document.querySelector('.scanner-status').textContent = 'QR code đã được quét!';
+
+                            // Auto submit if checkpoint is selected
+                            if (document.getElementById('checkpointSelect').value) {
+                                setTimeout(() => {
+                                    submitCheck();
+                                }, 500);
+                            }
+
+                            // Stop scanning
+                            qrScanning = false;
+                            if (videoStream) {
+                                videoStream.getTracks().forEach(track => track.stop());
+                            }
+                            video.style.display = 'none';
+                            return;
+                        }
+                    }
+
+                    if (qrScanning) {
+                        requestAnimationFrame(scanQRCode);
+                    }
+                }
+
+                function updateSubmitButton() {
+                    const submitBtn = document.querySelector('.submit-btn');
+                    const eventSelected = document.getElementById('eventSelect').value;
+                    const checkpointSelected = document.getElementById('checkpointSelect').value;
+
+                    if (eventSelected && checkpointSelected) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = '<i class="fas fa-check me-2"></i>Submit Check';
+                    } else {
+                        submitBtn.disabled = true;
+                        submitBtn.innerHTML = '<i class="fas fa-check me-2"></i>Chọn sự kiện và checkpoint';
+                    }
+                }
+
+                function submitCheck() {
+                    try {
+                        console.log('=== START SUBMIT CHECK ===');
+                        const eventName = document.getElementById('eventSelect').value;
+                        const checkpointType = document.getElementById('checkpointSelect').value;
+
+                        console.log('Event:', eventName, 'Checkpoint:', checkpointType, 'Method:', currentMethod);
+
+                        if (!eventName) {
+                            showResult('Vui lòng chọn sự kiện', 'error');
+                            return;
+                        }
+
+                        if (!checkpointType) {
+                            showResult('Vui lòng chọn checkpoint', 'error');
+                            return;
+                        }
+
+                        let submitData = {
+                            event_name: eventName,
+                            column_type: checkpointType
+                        };
+
+                        if (currentMethod === 'rfid') {
+                            const cardId = document.getElementById('cardId').value.trim();
+                            console.log('RFID Card ID:', cardId);
+                            if (!cardId) {
+                                showResult('Vui lòng quẹt thẻ RFID', 'error');
+                                return;
+                            }
+                            submitData.card_id = cardId;
+                        } else if (currentMethod === 'qr') {
+                            const qrData = document.getElementById('qrResult').value.trim();
+                            console.log('QR Data:', qrData);
+                            if (!qrData) {
+                                showResult('Vui lòng quét QR code', 'error');
+                                return;
+                            }
+                            submitData.qr_data = qrData;
+                        } else if (currentMethod === 'manual') {
+                            const customerId = document.getElementById('customerId').value.trim();
+                            const customerName = document.getElementById('customerName').value.trim();
+                            const customerPhone = document.getElementById('customerPhone').value.trim();
+
+                            console.log('Manual - ID:', customerId, 'Name:', customerName, 'Phone:', customerPhone);
+
+                            if (!customerId || !customerName) {
+                                showResult('Vui lòng nhập Customer ID và tên', 'error');
+                                return;
+                            }
+
+                            submitData.customer_id = customerId;
+                            submitData.customer_name = customerName;
+                            submitData.customer_phone = customerPhone;
+                        }
+
+                        console.log('Final submitData before fetch:', submitData);
+
+                        // Use correct API endpoint from file mẫu
+                        let apiEndpoint = '/api/event-manager/check';
+                        console.log('API endpoint:', apiEndpoint);
+
+                        // Show loading
+                        const submitBtn = document.querySelector('.submit-btn');
+                        const originalText = submitBtn.innerHTML;
+                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý...';
+                        submitBtn.disabled = true;
+
+                        console.log('Sending fetch request...');
+
+                        fetch(apiEndpoint, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(submitData)
+                        })
+                            .then(response => {
+                                console.log('Response received:', response.status, response.statusText);
+                                if (response.ok) {
+                                    return response.json();
+                                } else {
+                                    return response.json().then(errorData => {
+                                        console.log('Error response data:', errorData);
+                                        throw { status: response.status, data: errorData };
+                                    });
+                                }
+                            })
+                            .then(data => {
+                                console.log('Success response data:', data);
+                                if (data.success) {
+                                    showResult(data.message, 'success');
+                                    clearInputs();
+                                } else {
+                                    showResult(data.error || 'Lỗi khi thực hiện check', 'error');
+                                }
+                            })
+                            .catch(error => {
+                                console.error('Error submitting check:', error);
+                                if (error.status === 403 && error.data && error.data.error === 'NETWORK_ACCESS_DENIED') {
+                                    showNetworkError(error.data.message, error.data.client_ip);
+                                } else if (error.data && error.data.error) {
+                                    showResult('Lỗi: ' + error.data.error, 'error');
+                                } else {
+                                    showResult('Lỗi kết nối: ' + (error.message || 'Vui lòng thử lại'), 'error');
+                                }
+                            })
+                            .finally(() => {
+                                console.log('Request completed');
+                                // Restore button
+                                submitBtn.innerHTML = originalText;
+                                updateSubmitButton();
+                            });
+
+                        console.log('=== END SUBMIT CHECK SETUP ===');
+
+                    } catch (error) {
+                        console.error('JavaScript error in submitCheck:', error);
+                        showResult('Lỗi JavaScript: ' + error.message, 'error');
+                    }
+                }
+
+                function clearInputs() {
+                    document.getElementById('cardId').value = '';
+                    document.getElementById('qrResult').value = '';
+                    document.getElementById('customerId').value = '';
+                    document.getElementById('customerName').value = '';
+                    document.getElementById('customerPhone').value = '';
+
+                    // Reset RFID status
+                    const rfidStatus = document.getElementById('rfid-status');
+                    rfidStatus.innerHTML = '<i class="fas fa-id-card me-2"></i>Sẵn sàng đọc thẻ RFID...';
+                    rfidStatus.style.color = '#28a745';
+
+                    // Focus appropriate input
+                    if (currentMethod === 'rfid') {
+                        document.getElementById('rfidInput').focus();
+                    } else if (currentMethod === 'manual') {
+                        document.getElementById('customerId').focus();
+                    }
+                }
+
+                function showResult(message, type) {
+                    const resultDiv = document.getElementById('resultMessage');
+                    resultDiv.textContent = message;
+                    resultDiv.className = 'result-message ' + type;
+                    resultDiv.style.display = 'block';
+
+                    // Auto hide after 5 seconds
+                    setTimeout(() => {
+                        resultDiv.style.display = 'none';
+                    }, 5000);
+                }
+
+                function goBackToDashboard() {
+                    // Stop video stream if active
+                    if (videoStream) {
+                        videoStream.getTracks().forEach(track => track.stop());
+                    }
+                    window.location.href = '/event';
+                }
+
+                // Cleanup on page unload
+                window.addEventListener('beforeunload', function () {
+                    if (videoStream) {
+                        videoStream.getTracks().forEach(track => track.stop());
+                    }
+                });
+
+                // Employee search functionality
+                function setupEmployeeSearch() {
+                    const customerIdInput = document.getElementById('customerId');
+                    const customerNameInput = document.getElementById('customerName');
+                    const customerPhoneInput = document.getElementById('customerPhone');
+                    const searchResultsDiv = document.getElementById('customerSearchResults');
+
+                    let searchTimeout;
+
+                    customerIdInput.addEventListener('input', function () {
+                        const query = this.value.trim();
+                        const eventName = document.getElementById('eventSelect').value;
+
+                        // Clear previous timeout
+                        clearTimeout(searchTimeout);
+
+                        if (query.length < 1 || !eventName) {
+                            hideSearchResults();
+                            return;
+                        }
+
+                        // Debounce search
+                        searchTimeout = setTimeout(() => {
+                            searchEmployees(query);
+                        }, 300);
+                    });
+
+                    // Hide results when clicking outside
+                    document.addEventListener('click', function (e) {
+                        if (!e.target.closest('.input-group')) {
+                            hideSearchResults();
+                        }
+                    });
+
+                    // Keyboard navigation
+                    customerIdInput.addEventListener('keydown', function (e) {
+                        const items = searchResultsDiv.querySelectorAll('.employee-search-item');
+                        let currentIndex = -1;
+
+                        // Find currently highlighted item
+                        items.forEach((item, index) => {
+                            if (item.classList.contains('highlighted')) {
+                                currentIndex = index;
+                            }
+                        });
+
+                        if (e.key === 'ArrowDown') {
+                            e.preventDefault();
+                            currentIndex = Math.min(currentIndex + 1, items.length - 1);
+                            highlightItem(items, currentIndex);
+                        } else if (e.key === 'ArrowUp') {
+                            e.preventDefault();
+                            currentIndex = Math.max(currentIndex - 1, 0);
+                            highlightItem(items, currentIndex);
+                        } else if (e.key === 'Enter') {
+                            e.preventDefault();
+                            if (currentIndex >= 0 && items[currentIndex]) {
+                                selectEmployee(items[currentIndex]);
+                            }
+                        } else if (e.key === 'Escape') {
+                            hideSearchResults();
+                        }
+                    });
+                }
+
+                function searchEmployees(query) {
+                    const eventName = document.getElementById('eventSelect').value;
+                    if (!eventName) {
+                        hideSearchResults();
+                        return;
+                    }
+
+                    fetch(`/api/event-manager/search-event-customers?query=${encodeURIComponent(query)}&event_name=${encodeURIComponent(eventName)}`, {
+                        method: 'GET',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.employees) {
+                                displaySearchResults(data.employees);
+                            } else {
+                                hideSearchResults();
+                            }
+                        })
+                        .catch(error => {
+                            hideSearchResults();
+                        });
+                }
+
+                function displaySearchResults(employees) {
+                    const searchResultsDiv = document.getElementById('customerSearchResults');
+                    searchResultsDiv.innerHTML = '';
+
+                    if (employees.length === 0) {
+                        hideSearchResults();
+                        return;
+                    }
+
+                    employees.forEach((employee, index) => {
+                        const item = document.createElement('div');
+                        item.className = 'employee-search-item';
+                        item.innerHTML = `
+                    <span class="employee-id">${employee.id}</span>
+                    <span class="employee-name">${employee.name}</span>
+                    ${employee.phone ? `<span class="employee-phone">${employee.phone}</span>` : ''}
+                `;
+
+                        item.addEventListener('click', function () {
+                            selectEmployee(this);
+                        });
+
+                        item.addEventListener('mouseenter', function () {
+                            highlightItem(searchResultsDiv.querySelectorAll('.employee-search-item'), index);
+                        });
+
+                        searchResultsDiv.appendChild(item);
+                    });
+
+                    searchResultsDiv.style.display = 'block';
+                }
+
+                function selectEmployee(item) {
+                    const id = item.querySelector('.employee-id').textContent;
+                    const name = item.querySelector('.employee-name').textContent;
+                    const phoneElement = item.querySelector('.employee-phone');
+                    const phone = phoneElement ? phoneElement.textContent : '';
+
+                    document.getElementById('customerId').value = id;
+                    document.getElementById('customerName').value = name;
+                    document.getElementById('customerPhone').value = phone;
+
+                    hideSearchResults();
+                }
+
+                function highlightItem(items, index) {
+                    items.forEach(item => item.classList.remove('highlighted'));
+                    if (items[index]) {
+                        items[index].classList.add('highlighted');
+                        items[index].style.backgroundColor = '#e3f2fd';
+                    }
+                }
+
+                function hideSearchResults() {
+                    const searchResultsDiv = document.getElementById('customerSearchResults');
+                    searchResultsDiv.style.display = 'none';
+                    searchResultsDiv.innerHTML = '';
+                }
+
+                // Network Error Handling
+                function showNetworkError(message, clientIp) {
+                    const errorHtml = `
+                <div class="network-error-container text-center">
+                    <div class="network-error-icon">
+                        <i class="fas fa-wifi" style="font-size: 48px; color: #dc3545; margin-bottom: 20px;"></i>
+                    </div>
+                    <h4 class="text-danger mb-3">Không thể thực hiện check</h4>
+                    <p class="text-center mb-3">${message}</p>
+                    <div class="alert alert-warning">
+                        <small>
+                            <i class="fas fa-info-circle me-1"></i>
+                            IP hiện tại: <strong>${clientIp}</strong><br>
+                            Vui lòng kết nối mạng Wi-Fi của công ty để thực hiện check-in/out
+                        </small>
+                    </div>
+                    <div class="mt-4">
+                        <button class="btn btn-primary me-2" onclick="checkNetworkStatusEventManager()">
+                            <i class="fas fa-sync-alt me-2"></i>Kiểm tra lại
+                        </button>
+                        <button class="btn btn-outline-secondary" onclick="window.location.reload()">
+                            <i class="fas fa-home me-2"></i>Tải lại trang
+                        </button>
+                    </div>
+                </div>
+            `;
+
+                    // Show error in result container
+                    const resultContainer = document.querySelector('.check-result');
+                    if (resultContainer) {
+                        resultContainer.innerHTML = errorHtml;
+                        resultContainer.style.display = 'block';
+                    }
+                }
+
+                async function checkNetworkStatusEventManager() {
+                    try {
+                        const response = await fetch('/api/network-status');
+                        const data = await response.json();
+
+                        if (data.success && data.is_company_network) {
+                            showResult('Đã kết nối thành công mạng công ty!', 'success');
+                            // Hide network error and reload page after 2 seconds
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 2000);
+                        } else {
+                            showResult(`Vẫn chưa trong mạng công ty. IP hiện tại: ${data.client_ip}`, 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error checking network status:', error);
+                        showResult('Lỗi kiểm tra kết nối mạng', 'error');
+                    }
+                }
+
+                // Add global error handler
+                window.addEventListener('error', function (e) {
+                    console.error('JavaScript Error:', e.error);
+                    console.error('Message:', e.message);
+                    console.error('Source:', e.filename, 'Line:', e.lineno);
+                });
+
+                window.addEventListener('unhandledrejection', function (e) {
+                    console.error('Unhandled Promise Rejection:', e.reason);
+                });
+            </script>
+
+            <!-- Include shared scripts -->
+            <%- include('../partials/scripts') %>
+        </div>
+</body>
+
+</html>

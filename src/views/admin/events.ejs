@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý sự kiện - RFID Attendance System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Include shared styles -->
+    <%- include('../partials/styles') %>
+
+        <style>
+            /* Page-specific styles for admin events */
+        </style>
+</head>
+
+<body>
+    <!-- Mobile Menu Toggle -->
+    <button class="btn btn-light position-fixed d-lg-none" id="mobileMenuToggle"
+        style="top: 1rem; left: 1rem; z-index: 1100;">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Include shared sidebar -->
+    <%- include('../partials/sidebar') %>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="header d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="header-title">Quản lý sự kiện</h1>
+                    <p class="header-subtitle">Tạo và quản lý các sự kiện chấm công</p>
+                </div>
+                <div>
+                    <span class="status-indicator status-online" id="connectionStatus"></span>
+                    <span>Kết nối</span>
+                </div>
+            </div>
+
+            <!-- Event Statistics -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card stat-card bg-primary text-white">
+                        <div class="card-body text-center">
+                            <i class="fas fa-calendar-alt stat-icon"></i>
+                            <div class="stat-value" id="totalEvents">0</div>
+                            <div class="stat-label">Tổng sự kiện</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stat-card bg-success text-white">
+                        <div class="card-body text-center">
+                            <i class="fas fa-play stat-icon"></i>
+                            <div class="stat-value" id="activeEvents">0</div>
+                            <div class="stat-label">Đang diễn ra</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stat-card bg-warning text-white">
+                        <div class="card-body text-center">
+                            <i class="fas fa-clock stat-icon"></i>
+                            <div class="stat-value" id="upcomingEvents">0</div>
+                            <div class="stat-label">Sắp diễn ra</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card stat-card bg-info text-white">
+                        <div class="card-body text-center">
+                            <i class="fas fa-users stat-icon"></i>
+                            <div class="stat-value" id="totalParticipants">0</div>
+                            <div class="stat-label">Người tham gia</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Event Management -->
+            <div class="row">
+                <!-- Event List -->
+                <div class="col-lg-8">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Danh sách sự kiện</h5>
+                            <div>
+                                <button class="btn btn-success btn-sm" data-bs-toggle="modal"
+                                    data-bs-target="#createEventModal">
+                                    <i class="fas fa-plus"></i> Tạo sự kiện
+                                </button>
+                                <button class="btn btn-outline-secondary btn-sm" onclick="loadEvents()">
+                                    <i class="fas fa-sync-alt"></i> Làm mới
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <!-- Event Filters -->
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <select class="form-select form-select-sm" id="statusFilter">
+                                        <option value="">Tất cả trạng thái</option>
+                                        <option value="upcoming">Sắp diễn ra</option>
+                                        <option value="active">Đang diễn ra</option>
+                                        <option value="completed">Đã hoàn thành</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="date" class="form-control form-control-sm" id="dateFilter"
+                                        placeholder="Lọc theo ngày">
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control form-control-sm" id="searchFilter"
+                                        placeholder="Tìm kiếm sự kiện...">
+                                </div>
+                            </div>
+
+                            <!-- Events Table -->
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Tên sự kiện</th>
+                                            <th>Thời gian</th>
+                                            <th>Trạng thái</th>
+                                            <th>Người tham gia</th>
+                                            <th>Thao tác</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="eventsTableBody">
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted">Đang tải...</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Pagination -->
+                            <nav>
+                                <ul class="pagination pagination-sm justify-content-end" id="eventsPagination">
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Event Details -->
+                <div class="col-lg-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Chi tiết sự kiện</h5>
+                        </div>
+                        <div class="card-body" id="eventDetails">
+                            <div class="text-center text-muted">
+                                <i class="fas fa-calendar-alt fa-3x mb-3"></i>
+                                <p>Chọn một sự kiện để xem chi tiết</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </main>
+        </div>
+
+        <!-- Create Event Modal -->
+        <div class="modal fade" id="createEventModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Tạo sự kiện mới</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="createEventForm">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="eventName" class="form-label">Tên sự kiện *</label>
+                                        <input type="text" class="form-control" id="eventName" name="name" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="eventLocation" class="form-label">Địa điểm</label>
+                                        <input type="text" class="form-control" id="eventLocation" name="location">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="eventDescription" class="form-label">Mô tả</label>
+                                <textarea class="form-control" id="eventDescription" name="description"
+                                    rows="3"></textarea>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="startDateTime" class="form-label">Thời gian bắt đầu *</label>
+                                        <input type="datetime-local" class="form-control" id="startDateTime"
+                                            name="start_time" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="endDateTime" class="form-label">Thời gian kết thúc *</label>
+                                        <input type="datetime-local" class="form-control" id="endDateTime"
+                                            name="end_time" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="maxParticipants" class="form-label">Số người tối đa</label>
+                                        <input type="number" class="form-control" id="maxParticipants"
+                                            name="max_participants" min="1">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="eventType" class="form-label">Loại sự kiện</label>
+                                        <select class="form-select" id="eventType" name="type">
+                                            <option value="meeting">Họp</option>
+                                            <option value="training">Đào tạo</option>
+                                            <option value="event">Sự kiện</option>
+                                            <option value="workshop">Workshop</option>
+                                            <option value="other">Khác</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="requireRegistration"
+                                        name="require_registration">
+                                    <label class="form-check-label" for="requireRegistration">
+                                        Yêu cầu đăng ký trước
+                                    </label>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button type="button" class="btn btn-primary" onclick="createEvent()">Tạo sự kiện</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Event Modal -->
+        <div class="modal fade" id="editEventModal" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Chỉnh sửa sự kiện</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="editEventForm">
+                            <input type="hidden" id="editEventId" name="id">
+                            <!-- Same form fields as create modal -->
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="editEventName" class="form-label">Tên sự kiện *</label>
+                                        <input type="text" class="form-control" id="editEventName" name="name" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="editEventLocation" class="form-label">Địa điểm</label>
+                                        <input type="text" class="form-control" id="editEventLocation" name="location">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="editEventDescription" class="form-label">Mô tả</label>
+                                <textarea class="form-control" id="editEventDescription" name="description"
+                                    rows="3"></textarea>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="editStartDateTime" class="form-label">Thời gian bắt đầu *</label>
+                                        <input type="datetime-local" class="form-control" id="editStartDateTime"
+                                            name="start_time" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="editEndDateTime" class="form-label">Thời gian kết thúc *</label>
+                                        <input type="datetime-local" class="form-control" id="editEndDateTime"
+                                            name="end_time" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="editMaxParticipants" class="form-label">Số người tối đa</label>
+                                        <input type="number" class="form-control" id="editMaxParticipants"
+                                            name="max_participants" min="1">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="editEventType" class="form-label">Loại sự kiện</label>
+                                        <select class="form-select" id="editEventType" name="type">
+                                            <option value="meeting">Họp</option>
+                                            <option value="training">Đào tạo</option>
+                                            <option value="event">Sự kiện</option>
+                                            <option value="workshop">Workshop</option>
+                                            <option value="other">Khác</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="editRequireRegistration"
+                                        name="require_registration">
+                                    <label class="form-check-label" for="editRequireRegistration">
+                                        Yêu cầu đăng ký trước
+                                    </label>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                        <button type="button" class="btn btn-primary" onclick="updateEvent()">Cập nhật</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scripts -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="/js/main.js"></script>
+        <script src="/js/admin.js"></script>
+        <script>
+            let eventsManager = {
+                events: [],
+                currentPage: 1,
+                pageSize: 10,
+                totalPages: 1,
+                filters: {
+                    status: '',
+                    date: '',
+                    search: ''
+                }
+            };
+
+            // Initialize events management
+            document.addEventListener('DOMContentLoaded', function () {
+                loadEvents();
+                loadEventStats();
+                setupEventListeners();
+
+                // Setup filter listeners
+                document.getElementById('statusFilter').addEventListener('change', applyFilters);
+                document.getElementById('dateFilter').addEventListener('change', applyFilters);
+                document.getElementById('searchFilter').addEventListener('input',
+                    debounce(applyFilters, 500)
+                );
+            });
+
+            // Load events
+            async function loadEvents() {
+                try {
+                    const params = new URLSearchParams({
+                        page: eventsManager.currentPage,
+                        limit: eventsManager.pageSize,
+                        ...eventsManager.filters
+                    });
+
+                    const response = await window.apiRequest(`/api/events?${params}`);
+
+                    if (response.success) {
+                        eventsManager.events = response.data.events;
+                        eventsManager.totalPages = response.data.totalPages;
+
+                        updateEventsTable(response.data.events);
+                        updatePagination();
+                    } else {
+                        window.showMessage('Không thể tải danh sách sự kiện', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error loading events:', error);
+                    window.showMessage('Lỗi khi tải danh sách sự kiện', 'error');
+                }
+            }
+
+            // Load event statistics
+            async function loadEventStats() {
+                try {
+                    const response = await window.apiRequest('/api/events/stats');
+
+                    if (response.success) {
+                        const stats = response.data;
+                        document.getElementById('totalEvents').textContent = stats.total;
+                        document.getElementById('activeEvents').textContent = stats.active;
+                        document.getElementById('upcomingEvents').textContent = stats.upcoming;
+                        document.getElementById('totalParticipants').textContent = stats.participants;
+                    }
+                } catch (error) {
+                    console.error('Error loading event stats:', error);
+                }
+            }
+
+            // Update events table
+            function updateEventsTable(events) {
+                const tbody = document.getElementById('eventsTableBody');
+
+                if (events.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">Không có sự kiện nào</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = events.map(event => {
+                    const status = getEventStatus(event);
+                    const statusBadge = getStatusBadge(status);
+
+                    return `
+                    <tr onclick="selectEvent(${event.id})" style="cursor: pointer;">
+                        <td>
+                            <strong>${event.name}</strong>
+                            ${event.location ? `<br><small class="text-muted">${event.location}</small>` : ''}
+                        </td>
+                        <td>
+                            <small>
+                                ${window.formatDateTime(event.start_time, 'datetime')}<br>
+                                đến ${window.formatDateTime(event.end_time, 'datetime')}
+                            </small>
+                        </td>
+                        <td>${statusBadge}</td>
+                        <td>${event.participant_count || 0}/${event.max_participants || '∞'}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <button class="btn btn-outline-primary" onclick="editEvent(${event.id}); event.stopPropagation();">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-outline-danger" onclick="deleteEvent(${event.id}); event.stopPropagation();">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                }).join('');
+            }
+
+            // Get event status
+            function getEventStatus(event) {
+                const now = new Date();
+                const start = new Date(event.start_time);
+                const end = new Date(event.end_time);
+
+                if (now < start) return 'upcoming';
+                if (now >= start && now <= end) return 'active';
+                return 'completed';
+            }
+
+            // Get status badge
+            function getStatusBadge(status) {
+                const badges = {
+                    'upcoming': '<span class="badge bg-warning">Sắp diễn ra</span>',
+                    'active': '<span class="badge bg-success">Đang diễn ra</span>',
+                    'completed': '<span class="badge bg-secondary">Đã hoàn thành</span>'
+                };
+
+                return badges[status] || '';
+            }
+
+            // Apply filters
+            function applyFilters() {
+                eventsManager.filters.status = document.getElementById('statusFilter').value;
+                eventsManager.filters.date = document.getElementById('dateFilter').value;
+                eventsManager.filters.search = document.getElementById('searchFilter').value;
+                eventsManager.currentPage = 1;
+
+                loadEvents();
+            }
+
+            // Debounce function
+            function debounce(func, wait) {
+                let timeout;
+                return function executedFunction(...args) {
+                    const later = () => {
+                        clearTimeout(timeout);
+                        func(...args);
+                    };
+                    clearTimeout(timeout);
+                    timeout = setTimeout(later, wait);
+                };
+            }
+
+            // Update pagination
+            function updatePagination() {
+                const pagination = document.getElementById('eventsPagination');
+                let html = '';
+
+                if (eventsManager.totalPages > 1) {
+                    // Previous button
+                    html += `
+                    <li class="page-item ${eventsManager.currentPage === 1 ? 'disabled' : ''}">
+                        <a class="page-link" href="#" onclick="changePage(${eventsManager.currentPage - 1})">Trước</a>
+                    </li>
+                `;
+
+                    // Page numbers
+                    for (let i = 1; i <= eventsManager.totalPages; i++) {
+                        if (i === eventsManager.currentPage) {
+                            html += `<li class="page-item active"><span class="page-link">${i}</span></li>`;
+                        } else {
+                            html += `<li class="page-item"><a class="page-link" href="#" onclick="changePage(${i})">${i}</a></li>`;
+                        }
+                    }
+
+                    // Next button
+                    html += `
+                    <li class="page-item ${eventsManager.currentPage === eventsManager.totalPages ? 'disabled' : ''}">
+                        <a class="page-link" href="#" onclick="changePage(${eventsManager.currentPage + 1})">Sau</a>
+                    </li>
+                `;
+                }
+
+                pagination.innerHTML = html;
+            }
+
+            // Change page
+            function changePage(page) {
+                if (page >= 1 && page <= eventsManager.totalPages) {
+                    eventsManager.currentPage = page;
+                    loadEvents();
+                }
+            }
+
+            // Select event
+            function selectEvent(eventId) {
+                const event = eventsManager.events.find(e => e.id === eventId);
+                if (event) {
+                    displayEventDetails(event);
+                }
+            }
+
+            // Display event details
+            function displayEventDetails(event) {
+                const details = document.getElementById('eventDetails');
+                const status = getEventStatus(event);
+                const statusBadge = getStatusBadge(status);
+
+                details.innerHTML = `
+                <div class="event-details">
+                    <h6 class="fw-bold">${event.name}</h6>
+                    <p class="text-muted mb-2">${event.description || 'Không có mô tả'}</p>
+                    
+                    <div class="mb-2">
+                        <strong>Trạng thái:</strong> ${statusBadge}
+                    </div>
+                    
+                    <div class="mb-2">
+                        <strong>Thời gian:</strong><br>
+                        <small>
+                            ${window.formatDateTime(event.start_time, 'datetime')}<br>
+                            đến ${window.formatDateTime(event.end_time, 'datetime')}
+                        </small>
+                    </div>
+                    
+                    ${event.location ? `
+                    <div class="mb-2">
+                        <strong>Địa điểm:</strong> ${event.location}
+                    </div>
+                    ` : ''}
+                    
+                    <div class="mb-2">
+                        <strong>Người tham gia:</strong> ${event.participant_count || 0}/${event.max_participants || 'Không giới hạn'}
+                    </div>
+                    
+                    <div class="mb-2">
+                        <strong>Loại:</strong> ${getEventTypeLabel(event.type)}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <strong>Đăng ký:</strong> ${event.require_registration ? 'Yêu cầu' : 'Không yêu cầu'}
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary btn-sm" onclick="editEvent(${event.id})">
+                            <i class="fas fa-edit"></i> Chỉnh sửa
+                        </button>
+                        <button class="btn btn-info btn-sm" onclick="viewParticipants(${event.id})">
+                            <i class="fas fa-users"></i> Xem người tham gia
+                        </button>
+                        <button class="btn btn-warning btn-sm" onclick="exportEventData(${event.id})">
+                            <i class="fas fa-download"></i> Xuất dữ liệu
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteEvent(${event.id})">
+                            <i class="fas fa-trash"></i> Xóa sự kiện
+                        </button>
+                    </div>
+                </div>
+            `;
+            }
+
+            // Get event type label
+            function getEventTypeLabel(type) {
+                const types = {
+                    'meeting': 'Họp',
+                    'training': 'Đào tạo',
+                    'event': 'Sự kiện',
+                    'workshop': 'Workshop',
+                    'other': 'Khác'
+                };
+
+                return types[type] || type;
+            }
+
+            // Create event
+            async function createEvent() {
+                const form = document.getElementById('createEventForm');
+                const formData = new FormData(form);
+
+                const eventData = {
+                    name: formData.get('name'),
+                    description: formData.get('description'),
+                    location: formData.get('location'),
+                    start_time: formData.get('start_time'),
+                    end_time: formData.get('end_time'),
+                    max_participants: formData.get('max_participants') ? parseInt(formData.get('max_participants')) : null,
+                    type: formData.get('type'),
+                    require_registration: formData.get('require_registration') === 'on'
+                };
+
+                try {
+                    const response = await window.apiRequest('/api/events', {
+                        method: 'POST',
+                        body: JSON.stringify(eventData)
+                    });
+
+                    if (response.success) {
+                        window.showMessage('Tạo sự kiện thành công', 'success');
+                        bootstrap.Modal.getInstance(document.getElementById('createEventModal')).hide();
+                        form.reset();
+                        loadEvents();
+                        loadEventStats();
+                    } else {
+                        window.showMessage(response.message || 'Không thể tạo sự kiện', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error creating event:', error);
+                    window.showMessage('Lỗi khi tạo sự kiện', 'error');
+                }
+            }
+
+            // Edit event
+            function editEvent(eventId) {
+                const event = eventsManager.events.find(e => e.id === eventId);
+                if (!event) return;
+
+                // Populate edit form
+                document.getElementById('editEventId').value = event.id;
+                document.getElementById('editEventName').value = event.name;
+                document.getElementById('editEventDescription').value = event.description || '';
+                document.getElementById('editEventLocation').value = event.location || '';
+                document.getElementById('editStartDateTime').value = formatDateTimeForInput(event.start_time);
+                document.getElementById('editEndDateTime').value = formatDateTimeForInput(event.end_time);
+                document.getElementById('editMaxParticipants').value = event.max_participants || '';
+                document.getElementById('editEventType').value = event.type || 'meeting';
+                document.getElementById('editRequireRegistration').checked = event.require_registration;
+
+                // Show modal
+                new bootstrap.Modal(document.getElementById('editEventModal')).show();
+            }
+
+            // Update event
+            async function updateEvent() {
+                const form = document.getElementById('editEventForm');
+                const formData = new FormData(form);
+                const eventId = formData.get('id');
+
+                const eventData = {
+                    name: formData.get('name'),
+                    description: formData.get('description'),
+                    location: formData.get('location'),
+                    start_time: formData.get('start_time'),
+                    end_time: formData.get('end_time'),
+                    max_participants: formData.get('max_participants') ? parseInt(formData.get('max_participants')) : null,
+                    type: formData.get('type'),
+                    require_registration: formData.get('require_registration') === 'on'
+                };
+
+                try {
+                    const response = await window.apiRequest(`/api/events/${eventId}`, {
+                        method: 'PUT',
+                        body: JSON.stringify(eventData)
+                    });
+
+                    if (response.success) {
+                        window.showMessage('Cập nhật sự kiện thành công', 'success');
+                        bootstrap.Modal.getInstance(document.getElementById('editEventModal')).hide();
+                        loadEvents();
+                        loadEventStats();
+                    } else {
+                        window.showMessage(response.message || 'Không thể cập nhật sự kiện', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error updating event:', error);
+                    window.showMessage('Lỗi khi cập nhật sự kiện', 'error');
+                }
+            }
+
+            // Delete event
+            async function deleteEvent(eventId) {
+                if (!confirm('Bạn có chắc chắn muốn xóa sự kiện này?')) return;
+
+                try {
+                    const response = await window.apiRequest(`/api/events/${eventId}`, {
+                        method: 'DELETE'
+                    });
+
+                    if (response.success) {
+                        window.showMessage('Xóa sự kiện thành công', 'success');
+                        loadEvents();
+                        loadEventStats();
+
+                        // Clear details if this event was selected
+                        document.getElementById('eventDetails').innerHTML = `
+                        <div class="text-center text-muted">
+                            <i class="fas fa-calendar-alt fa-3x mb-3"></i>
+                            <p>Chọn một sự kiện để xem chi tiết</p>
+                        </div>
+                    `;
+                    } else {
+                        window.showMessage(response.message || 'Không thể xóa sự kiện', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error deleting event:', error);
+                    window.showMessage('Lỗi khi xóa sự kiện', 'error');
+                }
+            }
+
+            // View participants
+            function viewParticipants(eventId) {
+                // TODO: Implement participants view
+                window.showMessage('Tính năng xem người tham gia đang được phát triển', 'info');
+            }
+
+            // Export event data
+            async function exportEventData(eventId) {
+                try {
+                    const response = await window.apiRequest(`/api/events/${eventId}/export`);
+
+                    if (response.success) {
+                        const link = document.createElement('a');
+                        link.href = response.data.downloadUrl;
+                        link.download = response.data.filename;
+                        link.click();
+
+                        window.showMessage('Xuất dữ liệu thành công', 'success');
+                    } else {
+                        window.showMessage(response.message || 'Không thể xuất dữ liệu', 'error');
+                    }
+                } catch (error) {
+                    console.error('Error exporting event data:', error);
+                    window.showMessage('Lỗi khi xuất dữ liệu', 'error');
+                }
+            }
+
+            // Format datetime for input
+            function formatDateTimeForInput(datetime) {
+                const date = new Date(datetime);
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+
+                return `${year}-${month}-${day}T${hours}:${minutes}`;
+            }
+
+            // Setup event listeners
+            function setupEventListeners() {
+                // Set default start time to now
+                const now = new Date();
+                document.getElementById('startDateTime').value = formatDateTimeForInput(now);
+
+                // Set default end time to 2 hours from now
+                const endTime = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+                document.getElementById('endDateTime').value = formatDateTimeForInput(endTime);
+            }
+        </script>
+
+        <!-- Include shared scripts -->
+        <%- include('../partials/scripts') %>
+</body>
+
+</html>

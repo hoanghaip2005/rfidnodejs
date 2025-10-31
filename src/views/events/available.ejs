@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= title %>
+    </title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Include shared styles -->
+    <%- include('../partials/styles') %>
+
+        <style>
+            .header {
+                background: linear-gradient(135deg, #28a745, #20c997);
+                color: white;
+                padding: 20px 0;
+                text-align: center;
+                font-size: 24px;
+                font-weight: bold;
+                margin-bottom: 30px;
+            }
+
+            body {
+                background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+                min-height: 100vh;
+            }
+
+            .container-main {
+                background: white;
+                border-radius: 15px;
+                box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+                padding: 30px;
+                margin: 20px auto;
+                max-width: 1200px;
+            }
+
+            .event-selector {
+                margin-bottom: 20px;
+            }
+
+            .event-item {
+                background: #f8f9fa;
+                border: 2px solid #dee2e6;
+                border-radius: 10px;
+                padding: 15px;
+                margin-bottom: 10px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            }
+
+            .event-item:hover {
+                border-color: #28a745;
+                background: #e8f5e8;
+            }
+
+            .event-item.selected {
+                border-color: #28a745;
+                background: #d4edda;
+            }
+
+            .event-name {
+                font-weight: bold;
+                color: #28a745;
+                font-size: 18px;
+            }
+
+            .event-info {
+                color: #6c757d;
+                font-size: 14px;
+                margin-top: 5px;
+            }
+
+            .participants-table {
+                margin-top: 20px;
+            }
+
+            /* Availability status styles like available.html */
+            .status-circle {
+                width: 15px;
+                height: 15px;
+                border-radius: 50%;
+                display: inline-block;
+                margin-right: 5px;
+            }
+
+            .status-checked {
+                background-color: #1cc88a;
+            }
+
+            .status-unchecked {
+                background-color: #e74a3b;
+            }
+
+            .checkbox-header {
+                text-align: center;
+                font-weight: bold;
+                white-space: nowrap;
+            }
+
+            .refresh-btn {
+                margin-left: 10px;
+                background-color: #1cc88a;
+                color: white;
+                border: none;
+                border-radius: 5px;
+                padding: 6px 12px;
+                cursor: pointer;
+            }
+
+            .refresh-btn:hover {
+                background-color: #169a6f;
+            }
+
+            .timestamp {
+                font-size: 12px;
+                color: #666;
+                margin-top: 5px;
+            }
+
+            .legend {
+                display: flex;
+                justify-content: center;
+                margin-bottom: 15px;
+            }
+
+            .legend-item {
+                display: flex;
+                align-items: center;
+                margin: 0 10px;
+            }
+
+            .back-btn {
+                background: #6c757d;
+                color: white;
+                border: none;
+                padding: 12px 30px;
+                border-radius: 25px;
+                font-size: 16px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                text-decoration: none;
+                display: inline-block;
+            }
+
+            .back-btn:hover {
+                background: #495057;
+                transform: translateY(-2px);
+                color: white;
+            }
+
+            .main-content {
+                min-height: 100vh;
+                padding-top: 0;
+            }
+        </style>
+</head>
+
+<body>
+    <!-- Mobile Menu Toggle -->
+    <button class="btn btn-light position-fixed" id="mobileMenuToggle"
+        style="top: 1rem; left: 1rem; z-index: 1100; display: none;">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Include shared sidebar -->
+    <%- include('../partials/sidebar') %>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <header class="header">
+                <div class="container d-flex justify-content-between align-items-center">
+                    <div class="flex-grow-1 text-center">
+                        <i class="fas fa-table me-2"></i>Event Results
+                    </div>
+                </div>
+            </header>
+
+            <div class="container">
+                <div class="container-main">
+                    <h4 class="mb-3">
+                        <i class="fas fa-calendar-alt me-2"></i>Chọn Sự Kiện (đang hoạt động)
+                    </h4>
+                    <div class="event-selector d-flex align-items-center gap-2">
+                        <div class="flex-grow-1">
+                            <select id="eventSelect" class="form-select">
+                                <option value="" selected disabled>Chọn sự kiện...</option>
+                            </select>
+                        </div>
+                        <button id="refreshBtn" class="refresh-btn" title="Làm mới">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                        <button id="exportBtn" class="btn btn-outline-success ms-2" title="Xuất Excel">
+                            <i class="fas fa-file-excel me-1"></i> Export
+                        </button>
+                    </div>
+                    <div id="lastUpdated" class="timestamp mb-3"></div>
+
+                    <div id="loadingIndicator" style="display:none; text-align:center;" class="my-3">
+                        <div class="spinner-border text-success" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p>Đang tải dữ liệu sự kiện...</p>
+                    </div>
+
+                    <div id="noEventSelected" class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>Vui lòng chọn sự kiện để xem tình trạng.
+                    </div>
+
+                    <div id="availabilityContent" style="display:none;">
+                        <div class="legend">
+                            <div class="legend-item">
+                                <div class="status-circle status-checked"></div>
+                                <span>Đã check</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="status-circle status-unchecked"></div>
+                                <span>Chưa check</span>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive participants-table">
+                            <table id="availabilityTable" class="table table-striped table-bordered">
+                                <thead>
+                                    <tr id="tableHeader">
+                                        <th>ID</th>
+                                        <th>Tên</th>
+                                        <th>Điện thoại</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <a href="/event" class="back-btn">
+                            <i class="fas fa-arrow-left me-2"></i>Quay Về Event Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+            <script>
+                // Elements
+                const eventSelect = document.getElementById('eventSelect');
+                const refreshBtn = document.getElementById('refreshBtn');
+                const availabilityContent = document.getElementById('availabilityContent');
+                const noEventSelected = document.getElementById('noEventSelected');
+                const loadingIndicator = document.getElementById('loadingIndicator');
+                const tableHeader = document.getElementById('tableHeader');
+                const tableBody = document.getElementById('tableBody');
+                const lastUpdated = document.getElementById('lastUpdated');
+                const exportBtn = document.getElementById('exportBtn');
+
+                // Init
+                document.addEventListener('DOMContentLoaded', () => {
+                    loadEvents();
+                    eventSelect.addEventListener('change', loadEventAvailability);
+                    refreshBtn.addEventListener('click', () => {
+                        if (eventSelect.value) loadEventAvailability();
+                    });
+                    exportBtn.addEventListener('click', () => {
+                        const selected = eventSelect.value;
+                        if (!selected) return alert('Vui lòng chọn sự kiện trước khi xuất báo cáo');
+                        window.location.href = `/api/event-manager/export-availability?event_name=${encodeURIComponent(selected)}`;
+                    });
+                });
+
+                async function loadEvents() {
+                    try {
+                        // Fetch events from event-manager API
+                        const res = await fetch('/api/event-manager/events');
+                        const data = await res.json();
+
+                        // Reset options except placeholder
+                        while (eventSelect.options.length > 1) eventSelect.remove(1);
+
+                        if (data.success && Array.isArray(data.events)) {
+                            // Filter only active events if status exists
+                            const activeEvents = data.events.filter(e => (e.status || '').toLowerCase() === 'active');
+                            const list = activeEvents.length ? activeEvents : [];
+
+                            if (!list.length) {
+                                noEventSelected.className = 'alert alert-warning';
+                                noEventSelected.innerHTML = '<i class="fas fa-info-circle me-2"></i>Không có sự kiện đang hoạt động.';
+                                availabilityContent.style.display = 'none';
+                            }
+
+                            list.forEach(ev => {
+                                const opt = document.createElement('option');
+                                opt.value = ev.name; // use name like sample
+                                opt.textContent = ev.name;
+                                eventSelect.appendChild(opt);
+                            });
+                        } else {
+                            noEventSelected.className = 'alert alert-danger';
+                            noEventSelected.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>Không tải được danh sách sự kiện.';
+                        }
+                    } catch (err) {
+                        console.error('Error loading events:', err);
+                        noEventSelected.className = 'alert alert-danger';
+                        noEventSelected.innerHTML = `<i class="fas fa-exclamation-triangle me-2"></i>Lỗi: ${err.message}`;
+                    }
+                }
+
+                async function loadEventAvailability() {
+                    const selected = eventSelect.value;
+                    if (!selected) return;
+
+                    // Show loading
+                    availabilityContent.style.display = 'none';
+                    noEventSelected.style.display = 'none';
+                    loadingIndicator.style.display = 'block';
+
+                    try {
+                        const res = await fetch(`/api/event-manager/available?event_name=${encodeURIComponent(selected)}`);
+                        const data = await res.json();
+
+                        loadingIndicator.style.display = 'none';
+                        if (data.success) {
+                            displayAvailabilityData(data);
+                            availabilityContent.style.display = 'block';
+                            // timestamp
+                            const now = new Date();
+                            lastUpdated.textContent = `Cập nhật: ${now.toLocaleDateString('vi-VN')} ${now.toLocaleTimeString('vi-VN')}`;
+                        } else {
+                            noEventSelected.className = 'alert alert-danger';
+                            noEventSelected.innerHTML = `<i class=\"fas fa-exclamation-triangle me-2\"></i>Lỗi: ${data.error || 'Không tải được dữ liệu sự kiện'}`;
+                            noEventSelected.style.display = 'block';
+                        }
+                    } catch (err) {
+                        loadingIndicator.style.display = 'none';
+                        noEventSelected.className = 'alert alert-danger';
+                        noEventSelected.innerHTML = `<i class=\"fas fa-exclamation-triangle me-2\"></i>Lỗi: ${err.message}`;
+                        noEventSelected.style.display = 'block';
+                        availabilityContent.style.display = 'none';
+                        console.error('Error loading availability:', err);
+                    }
+                }
+
+                function displayAvailabilityData(data) {
+                    // Clear dynamic headers beyond first 3
+                    while (tableHeader.cells.length > 3) tableHeader.deleteCell(3);
+                    // Add checkpoint headers
+                    (data.headers || []).forEach(h => {
+                        const th = document.createElement('th');
+                        th.className = 'checkbox-header';
+                        th.textContent = h;
+                        tableHeader.appendChild(th);
+                    });
+                    // Add actions header
+                    const thActions = document.createElement('th');
+                    thActions.textContent = 'Thao tác';
+                    tableHeader.appendChild(thActions);
+
+                    // Build rows
+                    tableBody.innerHTML = '';
+                    (data.customers || []).forEach(cus => {
+                        const row = tableBody.insertRow();
+                        row.insertCell().textContent = cus.id ?? '';
+                        row.insertCell().textContent = cus.name ?? '';
+                        row.insertCell().textContent = cus.phone ?? '';
+
+                        (data.headers || []).forEach(h => {
+                            const cell = row.insertCell();
+                            cell.className = 'text-center';
+                            const v = cus[h];
+                            const isChecked = typeof v === 'string' ? v.trim() !== '' : !!v;
+                            const dot = document.createElement('div');
+                            dot.className = `status-circle ${isChecked ? 'status-checked' : 'status-unchecked'}`;
+                            cell.appendChild(dot);
+                            if (isChecked && typeof v === 'string') {
+                                const ts = document.createElement('div');
+                                ts.className = 'timestamp';
+                                ts.textContent = v;
+                                cell.appendChild(ts);
+                            }
+                        });
+
+                        // Actions cell
+                        const actionCell = row.insertCell();
+                        const delBtn = document.createElement('button');
+                        delBtn.className = 'btn btn-sm btn-danger';
+                        delBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+                        delBtn.title = 'Xóa khỏi sự kiện';
+                        delBtn.addEventListener('click', async () => {
+                            const selected = eventSelect.value;
+                            if (!selected) return;
+                            if (!confirm(`Xóa người dùng ${cus.name || cus.id} khỏi sự kiện?`)) return;
+                            try {
+                                const resp = await fetch('/api/event-manager/remove-participant', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ event_name: selected, user_id: cus.id })
+                                });
+                                const r = await resp.json();
+                                if (r.success) {
+                                    // Reload availability
+                                    await loadEventAvailability();
+                                } else {
+                                    alert(r.message || 'Không thể xóa');
+                                }
+                            } catch (err) {
+                                alert('Lỗi khi xóa: ' + err.message);
+                            }
+                        });
+                        actionCell.appendChild(delBtn);
+                    });
+                }
+
+                // Logout function
+                async function logout() {
+                    if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+                        try {
+                            const response = await fetch('/auth/logout', { method: 'POST' });
+                            const data = await response.json();
+                            if (data.success) {
+                                window.location.href = data.redirectUrl || '/auth/login';
+                            }
+                        } catch (error) {
+                            console.error('Logout error:', error);
+                            alert('Đã xảy ra lỗi khi đăng xuất');
+                        }
+                    }
+                }
+            </script>
+
+            <!-- Include shared scripts -->
+            <%- include('../partials/scripts') %>
+        </div>
+</body>
+
+</html>

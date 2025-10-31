@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= title %>
+    </title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Include shared styles -->
+    <%- include('../partials/styles') %>
+
+        <style>
+            .event-header {
+                background: linear-gradient(135deg, #28a745, #20c997);
+                color: white;
+                padding: 20px 0;
+                text-align: center;
+                font-size: 24px;
+                font-weight: bold;
+                margin-bottom: 30px;
+            }
+
+            body {
+                background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+                min-height: 100vh;
+            }
+
+            .dashboard-container {
+                background: white;
+                border-radius: 15px;
+                box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+                padding: 30px;
+                margin: 20px auto;
+                max-width: 1000px;
+            }
+
+            .button-group {
+                margin-bottom: 30px;
+            }
+
+            .event-btn {
+                width: 280px;
+                height: 60px;
+                color: white;
+                text-align: center;
+                line-height: 60px;
+                border-radius: 25px;
+                cursor: pointer;
+                margin: 10px;
+                font-size: 16px;
+                font-weight: bold;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                display: inline-block;
+                text-decoration: none;
+            }
+
+            .btn-create-event {
+                background: linear-gradient(135deg, #007bff, #0056b3);
+            }
+
+            .btn-create-event:hover {
+                background: linear-gradient(135deg, #0056b3, #004085);
+                transform: translateY(-2px);
+                color: white;
+            }
+
+            .btn-event-check {
+                background: linear-gradient(135deg, #28a745, #1e7e34);
+            }
+
+            .btn-event-check:hover {
+                background: linear-gradient(135deg, #1e7e34, #155724);
+                transform: translateY(-2px);
+                color: white;
+            }
+
+            /* Force display for all event buttons */
+            .event-btn {
+                display: inline-block !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+            }
+
+            .btn-event-check {
+                background: linear-gradient(135deg, #28a745, #1e7e34) !important;
+            }
+
+            .btn-available-events {
+                background: linear-gradient(135deg, #3498db, #2980b9);
+            }
+
+            .btn-available-events:hover {
+                background: linear-gradient(135deg, #2980b9, #2471a3);
+                transform: translateY(-2px);
+                color: white;
+            }
+
+            .btn-view-create {
+                background: linear-gradient(135deg, #6f42c1, #5a32a3);
+            }
+
+            .btn-view-create:hover {
+                background: linear-gradient(135deg, #5a32a3, #4c2a85);
+                transform: translateY(-2px);
+                color: white;
+            }
+
+            .section-title {
+                color: #333;
+                font-weight: 600;
+                margin-bottom: 10px;
+            }
+
+            .info-text {
+                color: #6c757d;
+                font-size: 14px;
+                margin-bottom: 20px;
+            }
+
+            .back-btn {
+                background: #6c757d;
+                color: white;
+                border: none;
+                padding: 12px 30px;
+                border-radius: 25px;
+                font-size: 16px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                text-decoration: none;
+                display: inline-block;
+            }
+
+            .back-btn:hover {
+                background: #495057;
+                transform: translateY(-2px);
+                color: white;
+            }
+
+            .checkpoint-manager {
+                background: #f8f9fa;
+                padding: 20px;
+                border-radius: 10px;
+                border: 1px solid #dee2e6;
+            }
+
+            .checkpoint-manager .form-label {
+                font-weight: 500;
+                color: #495057;
+            }
+
+            .checkpoint-manager .form-control,
+            .checkpoint-manager .form-select {
+                border: 2px solid #e9ecef;
+                border-radius: 8px;
+                transition: border-color 0.3s;
+            }
+
+            .checkpoint-manager .form-control:focus,
+            .checkpoint-manager .form-select:focus {
+                border-color: #ffc107;
+                box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
+            }
+
+            #checkpointResult {
+                padding: 15px;
+                border-radius: 8px;
+                font-weight: bold;
+                display: none;
+            }
+
+            #checkpointResult.success {
+                background: #d4edda;
+                color: #155724;
+                border: 1px solid #c3e6cb;
+            }
+
+            #checkpointResult.error {
+                background: #f8d7da;
+                color: #721c24;
+                border: 1px solid #f5c6cb;
+            }
+
+            .btn-warning {
+                background: linear-gradient(135deg, #ffc107, #e0a800);
+                border: none;
+                color: #212529;
+                font-weight: bold;
+                transition: all 0.3s;
+            }
+
+            .btn-warning:hover {
+                background: linear-gradient(135deg, #e0a800, #c69500);
+                transform: translateY(-2px);
+                color: #212529;
+            }
+
+            .main-content {
+                min-height: 100vh;
+                padding-top: 0;
+            }
+        </style>
+</head>
+
+<body>
+    <!-- Mobile Menu Toggle -->
+    <button class="btn btn-light position-fixed" id="mobileMenuToggle"
+        style="top: 1rem; left: 1rem; z-index: 1100; display: none;">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Include shared sidebar -->
+    <%- include('../partials/sidebar') %>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <header class="event-header">
+                <div class="container d-flex justify-content-between align-items-center">
+                    <div class="flex-grow-1 text-center">
+                        <i class="fas fa-calendar-check me-2"></i>Event Dashboard
+                    </div>
+                </div>
+            </header>
+
+            <div class="container">
+                <div class="dashboard-container">
+
+                    <!-- Event Creation Section -->
+                    <div class="button-group">
+                        <h4 class="section-title">
+                            <i class="fas fa-plus-circle me-2 text-primary"></i>Tạo & Quản Lý Sự Kiện
+                        </h4>
+                        <div class="text-center">
+                            <a href="/event/viewcreate" class="event-btn btn-view-create">
+                                <i class="fas fa-calendar-plus me-2"></i>View & Create Events
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Check-in/Check-out Section -->
+                    <div class="button-group">
+                        <h4 class="section-title">
+                            <i class="fas fa-qrcode me-2 text-success"></i>Quản Lý Check-in/Check-out
+                        </h4>
+                        <div class="text-center">
+                            <a href="/event/check" class="event-btn btn-event-check">
+                                <i class="fas fa-qrcode me-2"></i>Event Check
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Checkpoint Management Section -->
+                    <div class="button-group">
+                        <h4 class="section-title">
+                            <i class="fas fa-map-marker-alt me-2 text-warning"></i>Quản Lý Checkpoint
+                        </h4>
+                        <div class="checkpoint-manager">
+                            <div class="row">
+                                <div class="col-md-4 mb-3">
+                                    <label for="eventSelectCheckpoint" class="form-label">Chọn Sự Kiện:</label>
+                                    <select id="eventSelectCheckpoint" class="form-select">
+                                        <option value="">-- Chọn sự kiện --</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="checkpointName" class="form-label">Tên Checkpoint:</label>
+                                    <input type="text" id="checkpointName" class="form-control"
+                                        placeholder="Ví dụ: PARKING_IN, LOBBY_OUT">
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">&nbsp;</label>
+                                    <button id="addCheckpointBtn" class="btn btn-warning w-100"
+                                        onclick="addCheckpoint()">
+                                        <i class="fas fa-plus me-2"></i>Thêm Checkpoint
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="checkpointResult" class="mt-3"></div>
+                        </div>
+                    </div>
+
+                    <!-- Import Participants (CSV/XLSX) Section -->
+                    <div class="button-group">
+                        <h4 class="section-title">
+                            <i class="fas fa-file-csv me-2 text-primary"></i>Import Danh Sách Tham Dự
+                        </h4>
+                        <div class="info-text">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Định dạng: ID, Name, Phone (Phone có thể để trống). Hỗ trợ file CSV hoặc Excel (.xlsx/.xls).
+                            Vui
+                            lòng chọn sự kiện trước khi import.
+                        </div>
+                        <div class="checkpoint-manager">
+                            <div class="row align-items-end">
+                                <div class="col-md-4 mb-3">
+                                    <label for="eventSelectImport" class="form-label">Chọn Sự Kiện:</label>
+                                    <select id="eventSelectImport" class="form-select">
+                                        <option value="">-- Chọn sự kiện --</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-5 mb-3">
+                                    <label for="csvFileInput" class="form-label">Chọn file (CSV hoặc Excel):</label>
+                                    <input type="file" id="csvFileInput" class="form-control"
+                                        accept=".csv,text/csv,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,.xlsx,.xls">
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <button id="importCsvBtn" class="btn btn-primary w-100"
+                                        onclick="importParticipantsCsv()">
+                                        <i class="fas fa-upload me-2"></i>Import
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="importResult" class="mt-3" style="display:none;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Available Events Section -->
+                    <div class="button-group">
+                        <h4 class="section-title">
+                            <i class="fas fa-table me-2 text-info"></i>Xem Trạng Thái Event
+                        </h4>
+                        <div class="text-center">
+                            <a href="/event/available" class="event-btn btn-available-events">
+                                <i class="fas fa-users me-2"></i>Event Results
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Back Button -->
+                    <div class="text-center mt-4">
+                        <a href="/staff" class="back-btn">
+                            <i class="fas fa-arrow-left me-2"></i>Quay Về Staff Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+            <script>
+                // Load events when page loads
+                document.addEventListener('DOMContentLoaded', function () {
+                    loadEventsForCheckpoint();
+                    loadEventsForImport();
+                });
+
+                // Load events for checkpoint management
+                async function loadEventsForCheckpoint() {
+                    try {
+                        const response = await fetch('/api/event-manager/events');
+                        const data = await response.json();
+
+                        const eventSelect = document.getElementById('eventSelectCheckpoint');
+                        eventSelect.innerHTML = '<option value="">-- Chọn sự kiện --</option>';
+
+                        if (data.success && data.events) {
+                            data.events.forEach(event => {
+                                const option = document.createElement('option');
+                                option.value = event.name;
+                                option.textContent = event.name;
+                                eventSelect.appendChild(option);
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Error loading events:', error);
+                        showCheckpointResult('Lỗi khi tải danh sách sự kiện', 'error');
+                    }
+                }
+
+                // Load events for import selector
+                async function loadEventsForImport() {
+                    try {
+                        const response = await fetch('/api/event-manager/events');
+                        const data = await response.json();
+
+                        const eventSelect = document.getElementById('eventSelectImport');
+                        eventSelect.innerHTML = '<option value="">-- Chọn sự kiện --</option>';
+
+                        if (data.success && data.events) {
+                            data.events.forEach(event => {
+                                const option = document.createElement('option');
+                                option.value = event.name;
+                                option.textContent = event.name;
+                                option.dataset.id = event.id;
+                                eventSelect.appendChild(option);
+                            });
+                        }
+                    } catch (error) {
+                        console.error('Error loading events for import:', error);
+                        showImportResult('Lỗi khi tải danh sách sự kiện', 'error');
+                    }
+                }
+
+                // CSV parser (simple): returns array of {id, name, phone}
+                function parseCsv(text) {
+                    const lines = text.replace(/^\uFEFF/, '').split(/\r?\n/).filter(l => l.trim().length > 0);
+                    const rows = [];
+                    for (let i = 0; i < lines.length; i++) {
+                        const line = lines[i];
+                        const parts = line.split(',').map(s => s.trim());
+                        if (i === 0 && parts.length >= 2 && /id/i.test(parts[0]) && /name/i.test(parts[1])) {
+                            // Skip header row
+                            continue;
+                        }
+                        const [id, name, phone] = parts;
+                        if (!id || !name) continue;
+                        rows.push({ id, name, phone: phone || '' });
+                    }
+                    return rows;
+                }
+
+                async function importParticipantsCsv() {
+                    const eventName = document.getElementById('eventSelectImport').value;
+                    const fileInput = document.getElementById('csvFileInput');
+                    const file = fileInput.files && fileInput.files[0];
+
+                    if (!eventName) {
+                        showImportResult('Vui lòng chọn sự kiện', 'error');
+                        return;
+                    }
+                    if (!file) {
+                        showImportResult('Vui lòng chọn file CSV', 'error');
+                        return;
+                    }
+
+                    const importBtn = document.getElementById('importCsvBtn');
+                    const originalText = importBtn.innerHTML;
+                    importBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang import...';
+                    importBtn.disabled = true;
+
+                    try {
+                        const form = new FormData();
+                        form.append('event_name', eventName);
+                        form.append('file', file);
+
+                        const resp = await fetch('/api/event-manager/import-participants-file', {
+                            method: 'POST',
+                            body: form
+                        });
+                        const data = await resp.json();
+                        if (data.success) {
+                            const details = data.details ? ` (thiếu trường: ${data.details.missingFields || 0}, ID quá dài: ${data.details.idTooLong || 0}, ID không hợp lệ: ${data.details.idInvalid || 0})` : '';
+                            showImportResult(`Import thành công: thêm mới ${data.inserted}, cập nhật ${data.updated}, bỏ qua ${data.skipped}${details}`, 'success');
+                            fileInput.value = '';
+                        } else {
+                            showImportResult(data.message || 'Import thất bại', 'error');
+                        }
+                    } catch (e) {
+                        console.error('Import CSV error:', e);
+                        showImportResult('Lỗi khi import: ' + e.message, 'error');
+                    } finally {
+                        importBtn.innerHTML = originalText;
+                        importBtn.disabled = false;
+                    }
+                }
+
+                function showImportResult(message, type) {
+                    const el = document.getElementById('importResult');
+                    el.textContent = message;
+                    el.className = type === 'success' ? 'alert alert-success' : 'alert alert-danger';
+                    el.style.display = 'block';
+                    setTimeout(() => { el.style.display = 'none'; }, 6000);
+                }
+
+                // Add checkpoint function
+                async function addCheckpoint() {
+                    const eventName = document.getElementById('eventSelectCheckpoint').value;
+                    const checkpointName = document.getElementById('checkpointName').value.trim();
+
+                    if (!eventName) {
+                        showCheckpointResult('Vui lòng chọn sự kiện', 'error');
+                        return;
+                    }
+
+                    if (!checkpointName) {
+                        showCheckpointResult('Vui lòng nhập tên checkpoint', 'error');
+                        return;
+                    }
+
+                    // Validate checkpoint name format
+                    if (!/^[A-Z_]+$/i.test(checkpointName)) {
+                        showCheckpointResult('Tên checkpoint chỉ được chứa chữ cái và dấu gạch dưới', 'error');
+                        return;
+                    }
+
+                    try {
+                        // Show loading
+                        const addBtn = document.getElementById('addCheckpointBtn');
+                        const originalText = addBtn.innerHTML;
+                        addBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang thêm...';
+                        addBtn.disabled = true;
+
+                        const response = await fetch('/api/event-manager/add-checkpoint', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                event_name: eventName,
+                                checkpoint_name: checkpointName.toUpperCase()
+                            })
+                        });
+
+                        const data = await response.json();
+
+                        if (data.success) {
+                            showCheckpointResult(`Checkpoint "${checkpointName.toUpperCase()}" đã được thêm thành công vào sự kiện "${eventName}"`, 'success');
+                            document.getElementById('checkpointName').value = '';
+                        } else {
+                            showCheckpointResult(data.error || 'Lỗi khi thêm checkpoint', 'error');
+                        }
+
+                        // Restore button
+                        addBtn.innerHTML = originalText;
+                        addBtn.disabled = false;
+
+                    } catch (error) {
+                        console.error('Error adding checkpoint:', error);
+                        showCheckpointResult('Lỗi kết nối: ' + error.message, 'error');
+
+                        // Restore button
+                        const addBtn = document.getElementById('addCheckpointBtn');
+                        addBtn.innerHTML = '<i class="fas fa-plus me-2"></i>Thêm Checkpoint';
+                        addBtn.disabled = false;
+                    }
+                }
+
+                // Show checkpoint result message
+                function showCheckpointResult(message, type) {
+                    const resultDiv = document.getElementById('checkpointResult');
+                    resultDiv.textContent = message;
+                    resultDiv.className = type;
+                    resultDiv.style.display = 'block';
+
+                    // Auto hide after 5 seconds
+                    setTimeout(() => {
+                        resultDiv.style.display = 'none';
+                    }, 5000);
+                }
+
+                // Logout function
+                async function logout() {
+                    if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+                        try {
+                            const response = await fetch('/auth/logout', { method: 'POST' });
+                            const data = await response.json();
+                            if (data.success) {
+                                window.location.href = data.redirectUrl || '/auth/login';
+                            }
+                        } catch (error) {
+                            console.error('Logout error:', error);
+                            alert('Đã xảy ra lỗi khi đăng xuất');
+                        }
+                    }
+                }
+            </script>
+
+            <!-- Include shared scripts -->
+            <%- include('../partials/scripts') %>
+        </div>
+</body>
+
+</html>

@@ -1,0 +1,275 @@
+<!-- Modern Sidebar -->
+<nav class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <div class="logo-container">
+            <div class="logo-icon">
+                <i class="fas fa-id-card"></i>
+            </div>
+            <h4 class="mb-0 fw-bold">RFID System</h4>
+            <small class="opacity-75">Hệ thống chấm công</small>
+        </div>
+    </div>
+
+    <div class="sidebar-nav">
+        <% if (user && user.role==='admin' ) { %>
+            <!-- Admin Menu -->
+            <div class="nav-section">
+                <div class="nav-section-title">Quản trị</div>
+                <a href="/admin/manage" class="nav-link" data-page="manage">
+                    <i class="fas fa-cogs"></i>
+                    Admin
+                </a>
+                <a href="/admin/settings" class="nav-link" data-page="settings">
+                    <i class="fas fa-cog"></i>
+                    Cài đặt
+                </a>
+                <a href="/staff" class="nav-link" data-page="">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Chấm công nhân viên
+                </a>
+                <a href="/event" class="nav-link" data-page="">
+                    <i class="fas fa-calendar-alt"></i>
+                    Chấm công sự kiện
+                </a>
+            </div>
+            <% } else if (user && user.role==='event_manager' ) { %>
+                <!-- Event Manager Menu -->
+                <div class="nav-section">
+                    <div class="nav-section-title">Quản lý sự kiện</div>
+                    <a href="/event" class="nav-link" data-page="dashboard">
+                        <i class="fas fa-calendar-alt"></i>
+                        Event Dashboard
+                    </a>
+                    <a href="/event/viewcreate" class="nav-link" data-page="viewcreate">
+                        <i class="fas fa-plus-circle"></i>
+                        Tạo & Xem sự kiện
+                    </a>
+                    <a href="/event/check" class="nav-link" data-page="check">
+                        <i class="fas fa-user-check"></i>
+                        Event Check
+                    </a>
+                    <a href="/event/available" class="nav-link" data-page="available">
+                        <i class="fas fa-users"></i>
+                        Danh sách tham gia
+                    </a>
+                    <a href="/event" class="nav-link" data-page="">
+                        <i class="fas fa-calendar-alt"></i>
+                        Chấm công sự kiện
+                    </a>
+                </div>
+                <% } else { %>
+                    <!-- Staff Menu -->
+                    <div class="nav-section">
+                        <div class="nav-section-title">Chấm công</div>
+                        <a href="/staff" class="nav-link" data-page="dashboard">
+                            <i class="fas fa-home"></i>
+                            Trang chủ
+                        </a>
+                        <a href="/staff/checkinwork" class="nav-link" data-page="checkinwork">
+                            <i class="fas fa-sign-in-alt"></i>
+                            Check In Work
+                        </a>
+                        <a href="/staff/checkoutwork" class="nav-link" data-page="checkoutwork">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Check Out Work
+                        </a>
+                        <a href="/event" class="nav-link" data-page="">
+                            <i class="fas fa-calendar-alt"></i>
+                            Chấm công sự kiện
+                        </a>
+                    </div>
+                    <% } %>
+
+                        <div class="nav-section">
+                            <div class="nav-section-title">Tài khoản</div>
+                            <a href="#" class="nav-link" onclick="event.preventDefault(); handleChangePassword();">
+                                <i class="fas fa-key"></i>
+                                Đổi mật khẩu
+                            </a>
+                            <a href="#" class="nav-link" onclick="event.preventDefault(); handleLogout();">
+                                <i class="fas fa-sign-out-alt"></i>
+                                Đăng xuất
+                            </a>
+                        </div>
+
+                        <!-- Inline script for sidebar functions -->
+                        <script>
+                            // Logout function directly in sidebar
+                            async function handleLogout() {
+                                if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+                                    try {
+                                        const response = await fetch('/auth/logout', {
+                                            method: 'POST',
+                                            headers: {
+                                                'Content-Type': 'application/json'
+                                            }
+                                        });
+
+                                        const data = await response.json();
+
+                                        if (data.success) {
+                                            // Redirect to login page
+                                            window.location.href = data.redirectUrl || '/auth/login';
+                                        } else {
+                                            alert('Đăng xuất thất bại: ' + (data.message || 'Lỗi không xác định'));
+                                        }
+                                    } catch (error) {
+                                        console.error('Logout error:', error);
+                                        alert('Đã xảy ra lỗi khi đăng xuất: ' + error.message);
+                                    }
+                                }
+                            }
+
+                            // Change password function
+                            async function handleChangePassword() {
+                                // Create modal HTML
+                                const modalHTML = `
+            <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="changePasswordModalLabel">
+                                <i class="fas fa-key me-2"></i>Đổi mật khẩu
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="changePasswordForm">
+                                <div class="mb-3">
+                                    <label for="currentPassword" class="form-label">Mật khẩu hiện tại</label>
+                                    <input type="password" class="form-control" id="currentPassword" name="currentPassword" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="newPassword" class="form-label">Mật khẩu mới</label>
+                                    <input type="password" class="form-control" id="newPassword" name="newPassword" required minlength="6">
+                                    <div class="form-text">Mật khẩu phải có ít nhất 6 ký tự</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="confirmPassword" class="form-label">Xác nhận mật khẩu mới</label>
+                                    <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                            <button type="button" class="btn btn-primary" onclick="submitChangePassword()">
+                                <i class="fas fa-save me-1"></i>Đổi mật khẩu
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+                                // Remove existing modal if any
+                                const existingModal = document.getElementById('changePasswordModal');
+                                if (existingModal) {
+                                    existingModal.remove();
+                                }
+
+                                // Add modal to body
+                                document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+                                // Show modal using Bootstrap
+                                if (typeof bootstrap !== 'undefined') {
+                                    const modal = new bootstrap.Modal(document.getElementById('changePasswordModal'));
+                                    modal.show();
+                                } else {
+                                    // Fallback if Bootstrap is not available
+                                    document.getElementById('changePasswordModal').style.display = 'block';
+                                    document.getElementById('changePasswordModal').classList.add('show');
+                                }
+
+                                // Focus on first input when modal is shown
+                                setTimeout(() => {
+                                    document.getElementById('currentPassword').focus();
+                                }, 200);
+                            }
+
+                            // Submit change password
+                            async function submitChangePassword() {
+                                const form = document.getElementById('changePasswordForm');
+                                const formData = new FormData(form);
+
+                                const currentPassword = formData.get('currentPassword');
+                                const newPassword = formData.get('newPassword');
+                                const confirmPassword = formData.get('confirmPassword');
+
+                                // Validation
+                                if (!currentPassword || !newPassword || !confirmPassword) {
+                                    alert('Vui lòng điền đầy đủ thông tin');
+                                    return;
+                                }
+
+                                if (newPassword !== confirmPassword) {
+                                    alert('Mật khẩu mới và xác nhận mật khẩu không khớp');
+                                    return;
+                                }
+
+                                if (newPassword.length < 6) {
+                                    alert('Mật khẩu mới phải có ít nhất 6 ký tự');
+                                    return;
+                                }
+
+                                if (newPassword === currentPassword) {
+                                    alert('Mật khẩu mới phải khác mật khẩu hiện tại');
+                                    return;
+                                }
+
+                                try {
+                                    // Disable submit button
+                                    const submitBtn = document.querySelector('#changePasswordModal .btn-primary');
+                                    const originalText = submitBtn.innerHTML;
+                                    submitBtn.disabled = true;
+                                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Đang xử lý...';
+
+                                    const response = await fetch('/auth/change-password', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json'
+                                        },
+                                        body: JSON.stringify({
+                                            currentPassword,
+                                            newPassword,
+                                            confirmPassword
+                                        })
+                                    });
+
+                                    const result = await response.json();
+
+                                    if (result.success) {
+                                        alert('Đổi mật khẩu thành công');
+
+                                        // Hide modal
+                                        if (typeof bootstrap !== 'undefined') {
+                                            const modal = bootstrap.Modal.getInstance(document.getElementById('changePasswordModal'));
+                                            modal.hide();
+                                        } else {
+                                            document.getElementById('changePasswordModal').remove();
+                                        }
+
+                                        // Clear form
+                                        form.reset();
+                                    } else {
+                                        alert('Đổi mật khẩu thất bại: ' + (result.message || 'Lỗi không xác định'));
+                                    }
+
+                                    // Re-enable submit button
+                                    submitBtn.disabled = false;
+                                    submitBtn.innerHTML = originalText;
+
+                                } catch (error) {
+                                    console.error('Change password error:', error);
+                                    alert('Đã xảy ra lỗi khi đổi mật khẩu: ' + error.message);
+
+                                    // Re-enable submit button
+                                    const submitBtn = document.querySelector('#changePasswordModal .btn-primary');
+                                    if (submitBtn) {
+                                        submitBtn.disabled = false;
+                                        submitBtn.innerHTML = '<i class="fas fa-save me-1"></i>Đổi mật khẩu';
+                                    }
+                                }
+                            }
+                        </script>
+    </div>
+</nav>

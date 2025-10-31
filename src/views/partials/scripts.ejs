@@ -1,0 +1,65 @@
+<script src="/js/main.js"></script>
+<script>
+    // Global JavaScript functions for all pages
+
+    // Mobile menu toggle
+    document.addEventListener('DOMContentLoaded', function () {
+        const mobileToggle = document.getElementById('mobileMenuToggle');
+        const sidebar = document.getElementById('sidebar');
+
+        if (mobileToggle && sidebar) {
+            mobileToggle.addEventListener('click', function () {
+                console.log('Mobile toggle clicked'); // Debug
+                sidebar.classList.toggle('mobile-open');
+                console.log('Sidebar classes:', sidebar.className); // Debug
+            });
+        } else {
+            console.log('Mobile toggle or sidebar not found'); // Debug
+        }
+    });
+
+    // Update active navigation based on current page
+    function updateActiveNavigation() {
+        const currentPage = window.location.pathname;
+        const navLinks = document.querySelectorAll('.nav-link');
+
+        navLinks.forEach(link => {
+            link.classList.remove('active');
+            const href = link.getAttribute('href');
+
+            if (href && (currentPage === href ||
+                (currentPage.includes(href) && href !== '/') ||
+                (href === '/admin' && currentPage === '/admin') ||
+                (href === '/staff' && currentPage === '/staff'))) {
+                link.classList.add('active');
+            }
+        });
+    }
+
+    // Note: logout() and changePassword() functions are now provided by main.js
+
+    // Initialize when DOM is loaded
+    document.addEventListener('DOMContentLoaded', function () {
+        updateActiveNavigation();
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function (event) {
+            const sidebar = document.getElementById('sidebar');
+            const mobileToggle = document.getElementById('mobileMenuToggle');
+
+            if (sidebar && mobileToggle &&
+                !sidebar.contains(event.target) &&
+                !mobileToggle.contains(event.target) &&
+                sidebar.classList.contains('mobile-open')) {
+                sidebar.classList.remove('mobile-open');
+            }
+        });
+    });
+
+    // Handle window resize for responsive design
+    window.addEventListener('resize', function () {
+        if (window.innerWidth > 1024) {
+            document.getElementById('sidebar')?.classList.remove('mobile-open');
+        }
+    });
+</script>

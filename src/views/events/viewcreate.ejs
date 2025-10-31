@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        <%= title %>
+    </title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Include shared styles -->
+    <%- include('../partials/styles') %>
+
+        <style>
+            .event-header {
+                background: linear-gradient(135deg, #28a745, #20c997);
+                color: white;
+                padding: 20px 0;
+                text-align: center;
+                font-size: 24px;
+                font-weight: bold;
+                margin-bottom: 30px;
+            }
+
+            body {
+                background: linear-gradient(45deg, #f8f9fa, #e9ecef);
+                min-height: 100vh;
+            }
+
+            .container-main {
+                background: white;
+                border-radius: 15px;
+                box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+                padding: 30px;
+                margin: 20px auto;
+                max-width: 900px;
+            }
+
+            .button-event {
+                width: 300px;
+                height: 60px;
+                background: linear-gradient(135deg, #28a745, #20c997);
+                color: white;
+                text-align: center;
+                line-height: 60px;
+                border-radius: 25px;
+                cursor: pointer;
+                margin-bottom: 20px;
+                font-size: 18px;
+                font-weight: bold;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                text-decoration: none;
+                display: inline-block;
+            }
+
+            .button-event:hover {
+                background: linear-gradient(135deg, #1e7e34, #17a2b8);
+                transform: translateY(-2px);
+                box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+                color: white;
+            }
+
+            .back-btn {
+                background: #6c757d;
+                color: white;
+                border: none;
+                padding: 12px 30px;
+                border-radius: 25px;
+                font-size: 16px;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                text-decoration: none;
+                display: inline-block;
+            }
+
+            .back-btn:hover {
+                background: #495057;
+                transform: translateY(-2px);
+                color: white;
+            }
+
+            .event-list {
+                max-height: 400px;
+                overflow-y: auto;
+            }
+
+            .event-item {
+                background: #f8f9fa;
+                border: 1px solid #dee2e6;
+                border-radius: 10px;
+                padding: 15px;
+                margin-bottom: 10px;
+                transition: all 0.3s ease;
+            }
+
+            .event-item:hover {
+                background: #e9ecef;
+                border-color: #28a745;
+                transform: translateY(-1px);
+            }
+
+            .event-name {
+                font-weight: bold;
+                color: #28a745;
+                font-size: 18px;
+            }
+
+            .event-info {
+                color: #6c757d;
+                font-size: 14px;
+                margin-top: 5px;
+            }
+
+            .event-actions {
+                margin-top: 10px;
+            }
+
+            .btn-sm-custom {
+                padding: 5px 12px;
+                font-size: 12px;
+                border-radius: 15px;
+                margin-right: 5px;
+            }
+
+            .main-content {
+                min-height: 100vh;
+                padding-top: 0;
+            }
+        </style>
+</head>
+
+<body>
+    <!-- Mobile Menu Toggle -->
+    <button class="btn btn-light position-fixed" id="mobileMenuToggle"
+        style="top: 1rem; left: 1rem; z-index: 1100; display: none;">
+        <i class="fas fa-bars"></i>
+    </button>
+
+    <!-- Include shared sidebar -->
+    <%- include('../partials/sidebar') %>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <header class="event-header">
+                <div class="container d-flex justify-content-between align-items-center">
+                    <div class="flex-grow-1 text-center">
+                        <i class="fas fa-calendar-check me-2"></i>Quản Lý Sự Kiện
+                    </div>
+                </div>
+            </header>
+
+            <div class="container">
+                <div class="container-main">
+                    <div class="text-center mb-4">
+                        <button class="button-event" data-bs-toggle="modal" data-bs-target="#createEventModal">
+                            <i class="fas fa-plus-circle me-2"></i>Tạo Sự Kiện Mới
+                        </button>
+                    </div>
+
+                    <div id="eventsList">
+                        <h4>
+                            <i class="fas fa-list me-2"></i>Danh Sách Sự Kiện
+                        </h4>
+                        <div id="eventsContainer" class="event-list">
+                            <div class="text-center py-4">
+                                <i class="fas fa-spinner fa-spin me-2"></i>Đang tải danh sách sự kiện...
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <a href="/event" class="back-btn">
+                            <i class="fas fa-arrow-left me-2"></i>Quay Về Event Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Create Event Modal -->
+            <div class="modal fade" id="createEventModal" tabindex="-1" aria-labelledby="createEventModalLabel"
+                aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="createEventModalLabel">
+                                <i class="fas fa-calendar-plus me-2 text-primary"></i>Tạo Sự Kiện Mới
+                            </h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="createEventForm" onsubmit="createNewEvent(event)">
+                                <div class="mb-3">
+                                    <label for="eventName" class="form-label">Tên Sự Kiện *</label>
+                                    <input type="text" class="form-control" id="eventName"
+                                        placeholder="Nhập tên sự kiện..." required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="eventDescription" class="form-label">Mô Tả</label>
+                                    <textarea class="form-control" id="eventDescription" rows="3"
+                                        placeholder="Nhập mô tả sự kiện..."></textarea>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label for="eventStartDate" class="form-label">Ngày Bắt Đầu *</label>
+                                        <input type="date" class="form-control" id="eventStartDate" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="eventEndDate" class="form-label">Ngày Kết Thúc *</label>
+                                        <input type="date" class="form-control" id="eventEndDate" required>
+                                    </div>
+                                </div>
+
+                                <div class="row mt-3">
+                                    <div class="col-md-6">
+                                        <label for="eventStartTime" class="form-label">Giờ Bắt Đầu *</label>
+                                        <input type="time" class="form-control" id="eventStartTime" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="eventEndTime" class="form-label">Giờ Kết Thúc *</label>
+                                        <input type="time" class="form-control" id="eventEndTime" required>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3 mt-3">
+                                    <label for="maxParticipants" class="form-label">Số Lượng Tối Đa</label>
+                                    <input type="number" class="form-control" id="maxParticipants"
+                                        placeholder="Không giới hạn" min="1">
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                <i class="fas fa-times me-2"></i>Hủy
+                            </button>
+                            <button type="submit" class="btn btn-primary" form="createEventForm">
+                                <i class="fas fa-plus-circle me-2"></i>Tạo Sự Kiện
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
+            <script>
+                // Initialize page
+                document.addEventListener('DOMContentLoaded', function () {
+                    console.log('Page loaded, initializing...');
+
+                    // Set default dates
+                    const today = new Date().toISOString().split('T')[0];
+                    document.getElementById('eventStartDate').value = today;
+                    document.getElementById('eventEndDate').value = today;
+
+                    // Set default times
+                    document.getElementById('eventStartTime').value = '08:00';
+                    document.getElementById('eventEndTime').value = '17:00';
+
+                    console.log('Default values set');
+
+                    // Load events
+                    loadEvents();
+                });
+
+                async function loadEvents() {
+                    console.log('Loading events...');
+                    try {
+                        const response = await fetch('/event/api/list');
+                        console.log('Events response:', response.status);
+                        const data = await response.json();
+                        console.log('Events data:', data);
+
+                        const container = document.getElementById('eventsContainer');
+
+                        if (data.success && data.data && data.data.length > 0) {
+                            container.innerHTML = data.data.map(event => `
+                        <div class="event-item" id="event-item-${event.id}">
+                            <div class="event-name">${event.name}</div>
+                            <div class="event-info">
+                                <i class="fas fa-calendar me-1"></i>
+                                ${new Date(event.start_date).toLocaleDateString('vi-VN')} - 
+                                ${new Date(event.end_date).toLocaleDateString('vi-VN')}
+                                <br>
+                                <i class="fas fa-clock me-1"></i>
+                                ${event.start_time} - ${event.end_time}
+                                <br>
+                                <i class="fas fa-info-circle me-1"></i>
+                                ${event.description || 'Không có mô tả'}
+                            </div>
+                            <div class="event-actions">
+                                <span class="badge ${event.status === 'active' ? 'bg-success' : 'bg-secondary'}">${event.status === 'active' ? 'Đang hoạt động' : 'Không hoạt động'}</span>
+                                <span class="badge bg-info">${event.participant_count || 0}/${event.max_participants || '∞'} người</span>
+                                <button class="btn btn-outline-primary btn-sm-custom" onclick="editEvent(${event.id})">
+                                    <i class="fas fa-edit me-1"></i>Sửa
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm-custom" onclick="deleteEvent(${event.id})">
+                                    <i class="fas fa-trash me-1"></i>Xóa
+                                </button>
+                            </div>
+                        </div>
+                    `).join('');
+                        } else {
+                            container.innerHTML = `
+                        <div class="text-center py-4 text-muted">
+                            <i class="fas fa-calendar-times fa-3x mb-3"></i>
+                            <p>Chưa có sự kiện nào được tạo</p>
+                            <small>Nhấn nút "Tạo Sự Kiện Mới" để bắt đầu</small>
+                        </div>
+                    `;
+                        }
+                    } catch (error) {
+                        console.error('Error loading events:', error);
+                        document.getElementById('eventsContainer').innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Lỗi khi tải danh sách sự kiện: ${error.message}
+                    </div>
+                `;
+                    }
+                }
+
+                async function createNewEvent(e) {
+                    if (e) e.preventDefault();
+
+                    const form = document.getElementById('createEventForm');
+
+                    // Check form validity using HTML5 validation
+                    if (!form.checkValidity()) {
+                        form.reportValidity();
+                        return;
+                    }
+
+                    const eventData = {
+                        name: document.getElementById('eventName').value.trim(),
+                        description: document.getElementById('eventDescription').value.trim(),
+                        start_date: document.getElementById('eventStartDate').value,
+                        end_date: document.getElementById('eventEndDate').value,
+                        start_time: document.getElementById('eventStartTime').value,
+                        end_time: document.getElementById('eventEndTime').value,
+                        max_participants: document.getElementById('maxParticipants').value || null
+                    };
+
+                    // Additional validation
+                    if (!eventData.name || !eventData.start_date || !eventData.end_date || !eventData.start_time || !eventData.end_time) {
+                        alert('Vui lòng điền đầy đủ các thông tin bắt buộc');
+                        return;
+                    }
+
+                    // Disable button to prevent double submission
+                    const submitBtn = document.querySelector('#createEventModal .btn-primary');
+                    const originalText = submitBtn.innerHTML;
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang tạo...';
+
+                    try {
+                        console.log('Sending event data:', eventData);
+
+                        const response = await fetch('/event/api/create', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(eventData)
+                        });
+
+                        console.log('Response status:', response.status);
+                        const result = await response.json();
+                        console.log('Response data:', result);
+
+                        if (result.success) {
+                            alert('Tạo sự kiện thành công!');
+                            const modal = bootstrap.Modal.getInstance(document.getElementById('createEventModal'));
+                            if (modal) modal.hide();
+                            form.reset();
+
+                            // Set default values again after reset
+                            const today = new Date().toISOString().split('T')[0];
+                            document.getElementById('eventStartDate').value = today;
+                            document.getElementById('eventEndDate').value = today;
+                            document.getElementById('eventStartTime').value = '08:00';
+                            document.getElementById('eventEndTime').value = '17:00';
+
+                            // Debug: do not reload events list automatically to keep logs visible
+                            // loadEvents();
+                        } else {
+                            alert('Lỗi: ' + (result.message || 'Không thể tạo sự kiện'));
+                        }
+                    } catch (error) {
+                        console.error('Error creating event:', error);
+                        alert('Lỗi kết nối: ' + error.message);
+                    } finally {
+                        // Re-enable button
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalText;
+                    }
+                }
+
+                function editEvent(eventId) {
+                    // TODO: Implement edit functionality
+                    alert('Chức năng sửa sự kiện sẽ được cập nhật sớm');
+                }
+
+                async function deleteEvent(eventId) {
+                    if (!confirm('Bạn có chắc chắn muốn xóa sự kiện này?')) return;
+
+                    try {
+                        const response = await fetch(`/event/api/events/${eventId}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json'
+                            }
+                        });
+
+                        // Try to parse JSON if available; otherwise read text for diagnostics
+                        const contentType = response.headers.get('content-type') || '';
+                        const payload = contentType.includes('application/json') ? await response.json() : { success: false, message: await response.text() };
+
+                        if (response.ok && payload.success) {
+                            // Remove item from DOM without full reload
+                            const item = document.getElementById(`event-item-${eventId}`);
+                            if (item) item.remove();
+                            alert('Xóa sự kiện thành công!');
+
+                            // If list becomes empty, show empty state
+                            const container = document.getElementById('eventsContainer');
+                            if (container && container.children.length === 0) {
+                                container.innerHTML = `
+                            <div class="text-center py-4 text-muted">
+                                <i class="fas fa-calendar-times fa-3x mb-3"></i>
+                                <p>Chưa có sự kiện nào được tạo</p>
+                                <small>Nhấn nút "Tạo Sự Kiện Mới" để bắt đầu</small>
+                            </div>
+                        `;
+                            }
+                        } else if (response.status === 404) {
+                            alert('API xóa sự kiện không tìm thấy (404). Có thể server chưa cập nhật route hoặc cần khởi động lại.');
+                        } else if (response.status === 401 || response.status === 403) {
+                            alert('Bạn không có quyền xóa sự kiện này. Vui lòng đăng nhập lại hoặc kiểm tra quyền.');
+                        } else {
+                            const msg = (payload && payload.message) ? payload.message : 'Không thể xóa sự kiện';
+                            alert('Lỗi: ' + msg);
+                        }
+                    } catch (error) {
+                        console.error('Error deleting event:', error);
+                        alert('Lỗi kết nối: ' + error.message);
+                    }
+                }
+
+                // Logout function
+                async function logout() {
+                    if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+                        try {
+                            const response = await fetch('/auth/logout', { method: 'POST' });
+                            const data = await response.json();
+                            if (data.success) {
+                                window.location.href = data.redirectUrl || '/auth/login';
+                            }
+                        } catch (error) {
+                            console.error('Logout error:', error);
+                            alert('Đã xảy ra lỗi khi đăng xuất');
+                        }
+                    }
+                }
+            </script>
+
+            <!-- Include shared scripts -->
+            <%- include('../partials/scripts') %>
+        </div>
+</body>
+
+</html>
