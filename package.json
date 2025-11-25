@@ -1,16 +1,12 @@
 {
-    "name": "rfid-attendance-nodejs",
+    "name": "rfid-attendance",
     "version": "1.0.0",
     "description": "RFID Attendance System - Node.js Migration from Flask",
     "main": "app.js",
     "scripts": {
         "start": "node app.js",
         "dev": "nodemon app.js",
-        "test": "jest",
-        "setup-db": "node setup-database.js",
-        "pm2:start": "pm2 start app.js --name rfid-system",
-        "pm2:stop": "pm2 stop rfid-system",
-        "pm2:restart": "pm2 restart rfid-system"
+        "postinstall": "echo 'Dependencies installed successfully'"
     },
     "keywords": [
         "rfid",
@@ -40,11 +36,12 @@
         "moment-timezone": "^0.5.43",
         "multer": "^2.0.2",
         "mysql2": "^3.6.0",
-        "serialport": "^12.0.0",
         "socket.io": "^4.7.2",
-        "sqlite3": "^5.1.7",
         "winston": "^3.10.0",
         "xlsx": "^0.18.5"
+    },
+    "optionalDependencies": {
+        "serialport": "^12.0.0"
     },
     "devDependencies": {
         "jest": "^29.6.2",
@@ -53,6 +50,6 @@
     },
     "engines": {
         "node": ">=18.0.0",
-        "npm": ">=8.0.0"
+        "npm": ">=9.0.0"
     }
 }
